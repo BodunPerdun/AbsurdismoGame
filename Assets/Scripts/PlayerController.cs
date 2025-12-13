@@ -100,9 +100,6 @@ public class PlayerController : MonoBehaviour
         Vector3 dashDirection = transform.forward; 
         StartCoroutine(PerformDash(dashDirection));
     }
-
-
-    // NEW: Корутина, выполняющая сам рывок
     IEnumerator PerformDash(Vector3 direction)
     {
         isDashing = true;
@@ -121,8 +118,6 @@ public class PlayerController : MonoBehaviour
         {
             
             ch.Move(direction * move_speed * Time.deltaTime * 3);
-
-         
             yield return null;
         }
 
