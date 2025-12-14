@@ -27,6 +27,12 @@ public class PlayerController : MonoBehaviour
     public float backwardOffset = 0f;
     private CinemachineRotationComposer _rotationComposer; // Змінна для зберігання композера
 
+    [Header("Camera Switch Settings")]
+    // Вказуємо в інспекторі, на яку камеру перемикатися в цій зоні
+    [SerializeField] private CinemachineCamera _checkBaseCamera;
+    [SerializeField] private KeyCode keyToSwitchCamera = KeyCode.Q;
+    private bool isPlayerCamera = true;
+
     void Start()
     {
         if (_targetCamera != null){_rotationComposer = _targetCamera.GetComponent<CinemachineRotationComposer>();}
@@ -66,6 +72,15 @@ public class PlayerController : MonoBehaviour
         {
             rawInput += Vector3.left;
             isMoving = true;
+        }
+        // Клік лівою кнопкою миші для тряски камери 
+        if (Input.GetMouseButtonDown(0)) { CameraManager.Instance.CameraShake(1.5f); }
+
+        
+        if (Input.GetKeyDown(keyToSwitchCamera))
+        { // ВИКЛИК ПЕРЕМИКАННЯ:
+            SwitchToCamera();
+            isPlayerCamera = !isPlayerCamera;
         }
 
         cameraTargetTracking(Input.GetKey(KeyCode.W), Input.GetKey(KeyCode.S));
@@ -150,5 +165,25 @@ public class PlayerController : MonoBehaviour
             _rotationComposer.TargetOffset.x = 0f;
         }
 
+    }
+
+    public void SwitchToCamera()
+    {
+        if (isPlayerCamera)
+        {
+            CameraManager.Instance.SwitchToCamera(_checkBaseCamera);
+        }else
+        {
+            CameraManager.Instance.SwitchToCamera(_targetCamera);
+        }
+    }
+
+    public void TakeDamage(int amount)
+    {
+        // ... логіка здоров'я ...
+
+        // ВИКЛИК ТРЯСКИ:
+        // Просто один рядок. 0.5f - це сила тряски (можна більше або менше)
+        CameraManager.Instance.CameraShake(0.5f);
     }
 }
