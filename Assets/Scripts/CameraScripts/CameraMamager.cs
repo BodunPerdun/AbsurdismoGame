@@ -1,23 +1,23 @@
-using UnityEngine;
-using Unity.Cinemachine; // Обов'язково для Cinemachine 3.x
+п»їusing UnityEngine;
+using Unity.Cinemachine; // РћР±РѕРІ'СЏР·РєРѕРІРѕ РґР»СЏ Cinemachine 3.x
 using System.Collections.Generic;
 
 public class CameraManager : MonoBehaviour
 {
-    // 1. Створюємо Singleton, щоб мати доступ з будь-якого місця: CameraManager.Instance
+    // 1. РЎС‚РІРѕСЂСЋС”РјРѕ Singleton, С‰РѕР± РјР°С‚Рё РґРѕСЃС‚СѓРї Р· Р±СѓРґСЊ-СЏРєРѕРіРѕ РјС–СЃС†СЏ: CameraManager.Instance
     public static CameraManager Instance { get; private set; }
 
     [Header("Cameras List")]
-    [Tooltip("Перетягніть сюди всі віртуальні камери, які є на сцені")]
+    [Tooltip("РџРµСЂРµС‚СЏРіРЅС–С‚СЊ СЃСЋРґРё РІСЃС– РІС–СЂС‚СѓР°Р»СЊРЅС– РєР°РјРµСЂРё, СЏРєС– С” РЅР° СЃС†РµРЅС–")]
     [SerializeField] private List<CinemachineCamera> _allCameras;
 
     [Header("Shake Settings")]
-    [Tooltip("Джерело імпульсу. Можна додати компонент CinemachineImpulseSource прямо на цей об'єкт")]
+    [Tooltip("Р”Р¶РµСЂРµР»Рѕ С–РјРїСѓР»СЊСЃСѓ. РњРѕР¶РЅР° РґРѕРґР°С‚Рё РєРѕРјРїРѕРЅРµРЅС‚ CinemachineImpulseSource РїСЂСЏРјРѕ РЅР° С†РµР№ РѕР±'С”РєС‚")]
     [SerializeField] private CinemachineImpulseSource _impulseSource;
 
     private void Awake()
     {
-        // Налаштування Singleton
+        // РќР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ Singleton
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -26,38 +26,38 @@ public class CameraManager : MonoBehaviour
         Instance = this;
     }
 
-    // === МЕТОД 1: Перемикання камер ===
+    // === РњР•РўРћР” 1: РџРµСЂРµРјРёРєР°РЅРЅСЏ РєР°РјРµСЂ ===
 
     /// <summary>
-    /// Вмикає передану камеру, вимикаючи інші (через пріоритет)
+    /// Р’РјРёРєР°С” РїРµСЂРµРґР°РЅСѓ РєР°РјРµСЂСѓ, РІРёРјРёРєР°СЋС‡Рё С–РЅС€С– (С‡РµСЂРµР· РїСЂС–РѕСЂРёС‚РµС‚)
     /// </summary>
-    /// <param name="targetCamera">Камера, яку треба активувати</param>
+    /// <param name="targetCamera">РљР°РјРµСЂР°, СЏРєСѓ С‚СЂРµР±Р° Р°РєС‚РёРІСѓРІР°С‚Рё</param>
     public void SwitchToCamera(CinemachineCamera targetCamera)
     {
         foreach (var cam in _allCameras)
         {
-            // Якщо це та камера, яку ми хочемо - ставимо високий пріоритет (10)
-            // Всім іншим ставимо низький (0)
+            // РЇРєС‰Рѕ С†Рµ С‚Р° РєР°РјРµСЂР°, СЏРєСѓ РјРё С…РѕС‡РµРјРѕ - СЃС‚Р°РІРёРјРѕ РІРёСЃРѕРєРёР№ РїСЂС–РѕСЂРёС‚РµС‚ (10)
+            // Р’СЃС–Рј С–РЅС€РёРј СЃС‚Р°РІРёРјРѕ РЅРёР·СЊРєРёР№ (0)
             cam.Priority = (cam == targetCamera) ? 10 : 0;
         }
     }
 
-    // === МЕТОД 2: Тряска (Shake) ===
+    // === РњР•РўРћР” 2: РўСЂСЏСЃРєР° (Shake) ===
 
     /// <summary>
-    /// Викликає тряску з певною силою
+    /// Р’РёРєР»РёРєР°С” С‚СЂСЏСЃРєСѓ Р· РїРµРІРЅРѕСЋ СЃРёР»РѕСЋ
     /// </summary>
-    /// <param name="force">Сила тряски (за замовчуванням 1)</param>
+    /// <param name="force">РЎРёР»Р° С‚СЂСЏСЃРєРё (Р·Р° Р·Р°РјРѕРІС‡СѓРІР°РЅРЅСЏРј 1)</param>
     public void CameraShake(float force = 1f)
     {
         if (_impulseSource != null)
         {
-            // Генеруємо імпульс з заданою силою
+            // Р“РµРЅРµСЂСѓС”РјРѕ С–РјРїСѓР»СЊСЃ Р· Р·Р°РґР°РЅРѕСЋ СЃРёР»РѕСЋ
             _impulseSource.GenerateImpulse(force);
         }
         else
         {
-            Debug.LogWarning("Не призначено Impulse Source у CameraManager!");
+            Debug.LogWarning("РќРµ РїСЂРёР·РЅР°С‡РµРЅРѕ Impulse Source Сѓ CameraManager!");
         }
     }
 }

@@ -35,6 +35,8 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        CameraManager.Instance.SwitchToCamera(_targetCamera);
+
         if (_targetCamera != null){_rotationComposer = _targetCamera.GetComponent<CinemachineRotationComposer>();}
         else{Debug.LogError("Камеру не призначено в інспекторі!");}
 
