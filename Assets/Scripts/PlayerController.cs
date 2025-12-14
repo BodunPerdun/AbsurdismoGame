@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using Unity.Cinemachine;
 
 public class PlayerController : MonoBehaviour
 {
@@ -12,16 +13,25 @@ public class PlayerController : MonoBehaviour
     private float acceleration = 100f;
     private Vector3 targetVelocity;
     private Vector3 currentVelocity;
+
     [Header("Dash Settings")]
     public float dashSpeed = 25f;
     public float dashDuration = 0.2f;
     private bool isDashing = false; 
     public TrailRenderer trail1;
     public TrailRenderer trail2;
-    
+
+    [Header("Camera Follow Settings")]
+    [SerializeField] public CinemachineCamera _targetCamera;
+    public float forwardOffset = 5f;
+    public float backwardOffset = 0f;
+    private CinemachineRotationComposer _rotationComposer; // Змінна для зберігання композера
 
     void Start()
     {
+        if (_targetCamera != null){_rotationComposer = _targetCamera.GetComponent<CinemachineRotationComposer>();}
+        else{Debug.LogError("Камеру не призначено в інспекторі!");}
+
         ch = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
     }
@@ -33,7 +43,7 @@ public class PlayerController : MonoBehaviour
         bool isMoving = false;
         
 
-//керування персонажем
+        // Керування персонажем
         if (Input.GetKey(KeyCode.W))
         {
             rawInput += Vector3.forward;
@@ -57,12 +67,18 @@ public class PlayerController : MonoBehaviour
             rawInput += Vector3.left;
             isMoving = true;
         }
+
+        cameraTargetTracking(Input.GetKey(KeyCode.W), Input.GetKey(KeyCode.S));
+
+        // Відміна руху при одночасному натисканні протилежних клавіш
+        if (Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.D)) { isMoving = false; }
+        if (Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.S)) { isMoving = false; }
+
         if (isMoving)
         {
             if (Input.GetKeyDown(KeyCode.LeftShift))
             {
                 Dash();
-
             }
             
             if (isDashing)
@@ -72,6 +88,7 @@ public class PlayerController : MonoBehaviour
         }
         animator.SetBool("isMoving", isMoving);
         Vector3 desiredDirection = rawInput.normalized;
+
         if (isMoving)
         {
             targetVelocity = desiredDirection * move_speed;
@@ -81,25 +98,20 @@ public class PlayerController : MonoBehaviour
             float currentspeed = currentVelocity.magnitude;
             animator.SetFloat("SpeedInput", currentspeed);
             ch.Move(currentVelocity * Time.deltaTime);
-        }
-        
+        }        
         else
         {
             targetVelocity = Vector3.zero;
-        }
-            
-        
-        
-        
+        }       
     }
 
     void Dash()
-    {
-       
+    {       
         if (isDashing) return;
         Vector3 dashDirection = transform.forward; 
         StartCoroutine(PerformDash(dashDirection));
     }
+
     IEnumerator PerformDash(Vector3 direction)
     {
         isDashing = true;
@@ -109,11 +121,8 @@ public class PlayerController : MonoBehaviour
         {
             trail1.emitting = true;
             trail2.emitting = true;
-        }
-        
-        
-
-        
+        }      
+                
         while (Time.time < startTime + dashDuration)
         {
             
@@ -126,5 +135,20 @@ public class PlayerController : MonoBehaviour
         trail2.emitting = false;
         animator.SetBool("isDashing", false);
     }
-    
+ 
+    void cameraTargetTracking(bool isForward, bool isBackward)
+    {
+        if (isForward)
+        {
+            _rotationComposer.TargetOffset.y = forwardOffset;
+            _rotationComposer.TargetOffset.x = 0f;
+
+        }
+        if (isBackward)
+        {
+            _rotationComposer.TargetOffset.y = backwardOffset;
+            _rotationComposer.TargetOffset.x = 0f;
+        }
+
+    }
 }
