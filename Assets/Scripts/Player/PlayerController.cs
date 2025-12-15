@@ -32,6 +32,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private CinemachineCamera _checkBaseCamera;
     [SerializeField] private KeyCode keyToSwitchCamera = KeyCode.Q;
     private bool isPlayerCamera = true;
+    
+    public AudioSource audioSource;
+    public AudioClip dashSound;
 
     void Start()
     {
@@ -75,8 +78,8 @@ public class PlayerController : MonoBehaviour
             rawInput += Vector3.left;
             isMoving = true;
         }
-        // Клік лівою кнопкою миші для тряски камери 
-        if (Input.GetMouseButtonDown(0)) { CameraManager.Instance.CameraShake(1.5f); }
+       
+       
 
         
         if (Input.GetKeyDown(keyToSwitchCamera))
@@ -124,8 +127,11 @@ public class PlayerController : MonoBehaviour
 
     void Dash()
     {       
+        
         if (isDashing) return;
         Vector3 dashDirection = transform.forward; 
+        audioSource.clip = dashSound;
+        audioSource.Play();
         StartCoroutine(PerformDash(dashDirection));
     }
 
