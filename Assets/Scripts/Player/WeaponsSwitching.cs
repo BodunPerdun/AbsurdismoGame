@@ -6,8 +6,8 @@ public class WeaponsSwitching : MonoBehaviour
 {
     public GameObject pistol;
     Animator animator;
-    private bool isPistol = false;
-    
+    public bool isPistol = false;
+
     void Start()
     {
         pistol.SetActive(false);
@@ -17,7 +17,7 @@ public class WeaponsSwitching : MonoBehaviour
 
     void FixedUpdate()
     {
-        if(Input.GetKey(KeyCode.Alpha1))
+        if (Input.GetKey(KeyCode.Alpha1))
         {
             {
                 pistol.SetActive(false);
@@ -25,13 +25,21 @@ public class WeaponsSwitching : MonoBehaviour
                 isPistol = false;
             }
         }
+
         if (Input.GetKey(KeyCode.Alpha2))
         {
-          
-                pistol.SetActive(true);
-                animator.SetBool("isPistol", true);
-                isPistol = true;
+
+            pistol.SetActive(true);
+            animator.SetBool("isPistol", true);
+            isPistol = true;
         }
 
+
+    }
+
+    public bool State()
+    {
+        return isPistol;
+        
     }
 }
