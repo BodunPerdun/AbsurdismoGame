@@ -30,7 +30,6 @@ public abstract class BaseWeapon : WeaponsTypes
     public void TryShoot(Vector3 direction)
     {
         diseredDirection = direction.normalized;
-
         if (Time.time >= nextTimetoFire)
         {
             nextTimetoFire = Time.time + 1f / fireRate;
@@ -61,11 +60,9 @@ public abstract class BaseWeapon : WeaponsTypes
     {
         if (audioSource != null && shootSound != null)
         {
-            // 1. Установите клип (если вы используете один и тот же компонент для разных звуков)
             audioSource.clip = shootSound;
             audioSource.pitch = Random.Range(minPitch, maxPitch);
             audioSource.volume = Random.Range(minVolume, maxVolume);
-            // 2. Воспроизведение
             audioSource.Play();
         } 
         else if (audioSource == null)

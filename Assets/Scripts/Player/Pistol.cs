@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Pistol : BaseWeapon
 {
+    private bool isPistol = true;
     private void Start()
     {
         weaponType = WeaponType.Pistol;

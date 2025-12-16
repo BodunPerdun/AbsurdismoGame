@@ -2,8 +2,9 @@
 using UnityEngine;
 using UnityEngine.Rendering.UnifiedRayTracing;
 
-public class WeaponsSwitching : MonoBehaviour
+public class WeaponsSwitching : WeaponsTypes
 {
+    public WeaponType weapon;
     public GameObject pistol;
     Animator animator;
     public bool isPistol = false;
