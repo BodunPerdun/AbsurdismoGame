@@ -1479,7 +1479,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4053016896216105208}
-  - component: {fileID: 8884070960815397556}
+  - component: {fileID: 4766983823729111408}
   m_Layer: 0
   m_Name: mixamorig:Spine
   m_TagString: Untagged
@@ -1503,7 +1503,7 @@ Transform:
   - {fileID: 7431653067478766608}
   m_Father: {fileID: 4348169037475509099}
   m_LocalEulerAnglesHint: {x: -0.592, y: 2.363, z: -2.462}
---- !u!114 &8884070960815397556
+--- !u!114 &4766983823729111408
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1512,14 +1512,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 7076361095395907759}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f261fe8a0f651844891bd7fee8176ff8, type: 3}
+  m_Script: {fileID: 11500000, guid: 4a4c7f1aeff4ca54aacab295cd7f032f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MouseRotation
-  max_angle: 10
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAim
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  max_angle: 60
   playerCamera: {fileID: 0}
-  playerRoot: {fileID: 8072595125615334399}
-  activeWeapon: {fileID: 0}
-  shootOrigin: {fileID: 0}
+  playerRoot: {fileID: 0}
+  weaponManager: {fileID: 0}
 --- !u!1 &7284667254029157369
 GameObject:
   m_ObjectHideFlags: 0
@@ -2157,8 +2159,7 @@ GameObject:
   - component: {fileID: 8072595125615334399}
   - component: {fileID: 8864957674925234594}
   - component: {fileID: 7963719550035569580}
-  - component: {fileID: 8699999639166061231}
-  - component: {fileID: 1030237941776154845}
+  - component: {fileID: 8096849152978173505}
   - component: {fileID: 418518638236025375}
   - component: {fileID: 345852658289310469}
   m_Layer: 0
@@ -2237,7 +2238,7 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &8699999639166061231
+--- !u!114 &8096849152978173505
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2246,37 +2247,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 8884562835580537157}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 28c62d465117e394c8c105e6d92d5d8e, type: 3}
+  m_Script: {fileID: 11500000, guid: 5980823c2b85b174a9e27513726f9ec4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  move_speed: 20
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  move_speed: 7
   rotation_speed: 10
   dashSpeed: 25
-  dashDuration: 0.25
-  trail1: {fileID: 4274883615190098577}
-  trail2: {fileID: 5715311591567898199}
-  _targetCamera: {fileID: 0}
-  forwardOffset: 5
-  backwardOffset: 0
-  _checkBaseCamera: {fileID: 0}
-  keyToSwitchCamera: 113
-  audioSource: {fileID: 0}
-  dashSound: {fileID: 0}
---- !u!114 &1030237941776154845
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8884562835580537157}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0c69998357ad1f478226f922ce64f92, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WeaponsSwitching
-  weapon: 2
-  pistol: {fileID: 3058862435421015788, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
-  isPistol: 0
+  dashDuration: 0.2
+  trails: []
 --- !u!111 &418518638236025375
 Animation:
   m_ObjectHideFlags: 0

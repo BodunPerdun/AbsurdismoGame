@@ -1,17 +1,15 @@
-using System;
 using UnityEngine;
 
 public class Pistol : BaseWeapon
 {
-    private bool isPistol = true;
     private void Start()
     {
-        weaponType = WeaponType.Pistol;
-        
+        weaponType = WeaponsTypes.WeaponType.Pistol;
     }
 
     protected override void PerformShot(Vector3 direction)
     {
-        SpawnBullet();
+        // Пистолет просто спавнит одну пулю
+        SpawnBullet(direction);
     }
 }
