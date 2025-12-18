@@ -2,26 +2,18 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class MouseRotation : MonoBehaviour
-{
-  
+{  
     // --- НАСТРОЙКИ ПОВОРОТА ТОРСА И КОРНЯ ---
     private float forcedRotationSpeed = 100f;
-    public float max_angle; 
-    
-    // public GameObject hips; // Удалено (не используется)
-    // private PlayerController playerController; // Удалено (не используется)
-    
+    public float max_angle = 10f; 
+        
     public Camera playerCamera;
     public Transform playerRoot;
-    
+
     // --- НАСТРОЙКИ СТРЕЛЬБЫ ---
-    public BaseWeapon activeWeapon;
-    
-    [Header("Точка выстрела (Для расчёта не используется, только для спавна)")]
-    [Tooltip("Эта переменная нужна для BaseWeapon.cs, но не для расчёта направления aimDirection в этом скрипте.")]
-    public Transform shootOrigin; 
-    
-    
+    private WeaponsSwitching weaponsSwitching;
+
+
     void Start()
     {
        if (playerRoot == null)
@@ -32,6 +24,11 @@ public class MouseRotation : MonoBehaviour
        {
            playerCamera = Camera.main;
        }
+
+        // Знаходимо скрипт перемикання зброї на головному об'єкті гравця
+        weaponsSwitching = playerRoot.GetComponent<WeaponsSwitching>();
+
+        if (weaponsSwitching == null) { Debug.LogError("Не знайдено скрипт WeaponsSwitching на об'єкті гравця!"); }
     }
 
    
@@ -57,11 +54,11 @@ public class MouseRotation : MonoBehaviour
     Vector3 GetMousePoint()
     {
         Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
+        // ПЛОСКОСТЬ ЗЕМЛИ: Привязана к Y-координате ТОРСА
+        Plane groundPlane = new Plane(Vector3.up, transform.position); 
 
         Vector3 planeCenter = transform.position;
         planeCenter.y = 0.31f;
-        // ПЛОСКОСТЬ ЗЕМЛИ: Привязана к Y-координате ТОРСА
-        Plane groundPlane = new Plane(Vector3.up, transform.position); 
         
         
         float hitDist;
@@ -92,9 +89,16 @@ public class MouseRotation : MonoBehaviour
 
     void HandleShooting(Vector3 direction)
     {
+        BaseWeapon activeWeapon = weaponsSwitching.GetActiveWeapon();
+
+        // Для одиночної черги пострілів
         if (Input.GetButtonDown("Fire1") && activeWeapon != null)
+        {            
+            activeWeapon.TryShoot(direction);
+        }
+        // Для автоматичної черги пострілів
+        else if (Input.GetButton("Fire2") && activeWeapon != null)
         {
-            
             activeWeapon.TryShoot(direction);
         }
     }

@@ -22,7 +22,7 @@ public class PlayerController : MonoBehaviour
     public TrailRenderer trail2;
 
     [Header("Camera Follow Settings")]
-    [SerializeField] public CinemachineCamera _targetCamera;
+    private CinemachineCamera _targetCamera;
     public float forwardOffset = 5f;
     public float backwardOffset = 0f;
     private CinemachineRotationComposer _rotationComposer; // Змінна для зберігання композера
@@ -38,10 +38,13 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
-        CameraManager.Instance.SwitchToCamera(_targetCamera);
+        if (_targetCamera == null)
+        {
+            _targetCamera = GameObject.FindGameObjectWithTag("FollowCamera").GetComponent<CinemachineCamera>();
+            _rotationComposer = _targetCamera.GetComponent<CinemachineRotationComposer>();
+        }else{Debug.LogError("Камеру не знайдено!");}
 
-        if (_targetCamera != null){_rotationComposer = _targetCamera.GetComponent<CinemachineRotationComposer>();}
-        else{Debug.LogError("Камеру не призначено в інспекторі!");}
+        CameraManager.Instance.SwitchToCamera(_targetCamera);
 
         ch = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
@@ -80,8 +83,6 @@ public class PlayerController : MonoBehaviour
         }
        
        
-
-        
         if (Input.GetKeyDown(keyToSwitchCamera))
         { // ВИКЛИК ПЕРЕМИКАННЯ:
             SwitchToCamera();
