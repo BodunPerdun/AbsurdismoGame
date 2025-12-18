@@ -1483,11 +1483,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f261fe8a0f651844891bd7fee8176ff8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MouseRotation
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
   max_angle: 10
   playerCamera: {fileID: 0}
   playerRoot: {fileID: 8072595125615334399}
-  activeWeapon: {fileID: 7831243671398253322}
-  shootOrigin: {fileID: 4387788223364118742}
 --- !u!1 &7284667254029157369
 GameObject:
   m_ObjectHideFlags: 0
@@ -2131,6 +2132,8 @@ GameObject:
   - component: {fileID: 418518638236025375}
   - component: {fileID: 345852658289310469}
   - component: {fileID: 9183152824288691751}
+  - component: {fileID: 5714760030786817520}
+  - component: {fileID: 2870169402616662231}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -2147,7 +2150,7 @@ Transform:
   m_GameObject: {fileID: 8884562835580537157}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.8745015, y: -0.00000018594073, z: 2.8981845}
+  m_LocalPosition: {x: 3.74, y: -0.00000018594073, z: 2.8981845}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2225,7 +2228,6 @@ MonoBehaviour:
   dashDuration: 0.25
   trail1: {fileID: 4274883615190098577}
   trail2: {fileID: 5715311591567898199}
-  _targetCamera: {fileID: 0}
   forwardOffset: 0
   backwardOffset: 0
   _checkBaseCamera: {fileID: 0}
@@ -2244,8 +2246,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0c69998357ad1f478226f922ce64f92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponsSwitching
-  weapons: []
-  animator: {fileID: 0}
+  weapons:
+  - {fileID: 7831243671398253322}
+  animator: {fileID: 7963719550035569580}
 --- !u!111 &418518638236025375
 Animation:
   m_ObjectHideFlags: 0
@@ -2255,7 +2258,7 @@ Animation:
   m_GameObject: {fileID: 8884562835580537157}
   m_Enabled: 1
   serializedVersion: 4
-  m_Animation: {fileID: 0}
+  m_Animation: {fileID: 7400000, guid: 9bbd193496eaa7c40a2d52c13934a516, type: 2}
   m_Animations: []
   m_WrapMode: 0
   m_PlayAutomatically: 1
@@ -2381,6 +2384,44 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &5714760030786817520
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8884562835580537157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b91ecbcc199f4492b9a91e820070131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mirror::Mirror.NetworkIdentity
+  sceneId: 0
+  _assetId: 970595802
+  serverOnly: 0
+  visibility: 0
+  hasSpawned: 0
+--- !u!65 &2870169402616662231
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8884562835580537157}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 5.2504363, z: 1}
+  m_Center: {x: 0, y: 2.6248686, z: 0}
 --- !u!1 &8935498514350556784
 GameObject:
   m_ObjectHideFlags: 0

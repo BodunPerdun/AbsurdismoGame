@@ -1,12 +1,15 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Mirror;
 
-public class MouseRotation : MonoBehaviour
-{  
+public class MouseRotation : NetworkBehaviour
+{
     // --- НАСТРОЙКИ ПОВОРОТА ТОРСА И КОРНЯ ---
+    [Header("Налаштування обертання")]
     private float forcedRotationSpeed = 100f;
-    public float max_angle = 10f; 
-        
+    public float max_angle = 10f;
+
+    [Header("Посилання")]
     public Camera playerCamera;
     public Transform playerRoot;
 
@@ -16,24 +19,29 @@ public class MouseRotation : MonoBehaviour
 
     void Start()
     {
-       if (playerRoot == null)
-       {
-           playerRoot = transform.root;
-       }
-       if (playerCamera == null)
-       {
-           playerCamera = Camera.main;
-       }
+        if (!isOwned) return;
+
+        if (playerRoot == null){playerRoot = transform.root;}
+
+        if (playerCamera == null){playerCamera = Camera.main;}
 
         // Знаходимо скрипт перемикання зброї на головному об'єкті гравця
         weaponsSwitching = playerRoot.GetComponent<WeaponsSwitching>();
-
         if (weaponsSwitching == null) { Debug.LogError("Не знайдено скрипт WeaponsSwitching на об'єкті гравця!"); }
     }
 
    
     void LateUpdate()
     {
+        if (!isOwned) return;
+
+        if (playerCamera == null)
+        {
+            FindCamera();
+            if (playerCamera == null) return; // Якщо все ще немає - чекаємо наступного кадру
+        }
+
+        // --- ЛОГІКА ПОВОРОТУ ---
         Vector3 targetPoint = GetMousePoint();
         
         // РАСЧЕТ НАПРАВЛЕНИЯ ОТ ТОРСА (transform.position)
@@ -42,14 +50,24 @@ public class MouseRotation : MonoBehaviour
         
         if (direction.sqrMagnitude > 0.01f)
         {
+            // Обертаємо Spine (верхню частину)
             RotateUpBody(direction);
+            // Обертаємо ноги, якщо скрутилися занадто сильно
             CheckAndForceBodyRotation(direction);
         }
         
         HandleShooting(direction);
     }
-    
-    
+
+    void FindCamera()
+    {
+        playerCamera = Camera.main;
+        // Альтернатива, якщо Camera.main не працює (наприклад, Cinemachine Brain):
+        if (playerCamera == null)
+            playerCamera = FindFirstObjectByType<Camera>();
+    }
+
+
     // функция для считування позиції мишки
     Vector3 GetMousePoint()
     {
@@ -90,6 +108,8 @@ public class MouseRotation : MonoBehaviour
     void HandleShooting(Vector3 direction)
     {
         BaseWeapon activeWeapon = weaponsSwitching.GetActiveWeapon();
+
+        if (activeWeapon == null) return;
 
         // Для одиночної черги пострілів
         if (Input.GetButtonDown("Fire1") && activeWeapon != null)

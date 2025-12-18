@@ -1,58 +1,110 @@
 using UnityEngine;
-using UnityEngine.AI; // Обязательно для использования NavMeshAgent
+using UnityEngine.AI;
+using Mirror; // 1. Додаємо Mirror
 
-[RequireComponent(typeof(NavMeshAgent))] // Гарантирует наличие компонента
-public class EnemyAI : MonoBehaviour
+[RequireComponent(typeof(NavMeshAgent))]
+public class EnemyAI : NetworkBehaviour // 2. Успадковуємося від NetworkBehaviour
 {
     private NavMeshAgent agent;
-    private Transform playerTarget;
+    private Transform targetTransform;
 
     [Header("AI Settings")]
-    public float chaseRange = 15f; 
-    public float attackRange = 2f; 
-    public float lookSpeed = 5f; 
+    public float chaseRange = 15f;
+    public float attackRange = 2f;
+    public float lookSpeed = 5f;
+
+    // Інтервал пошуку гравця (щоб не навантажувати процесор кожного кадру)
+    private float searchTimer;
+    private float searchInterval = 0.5f;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        if (GameObject.FindWithTag("Player") != null)
-        {
-            playerTarget = GameObject.FindWithTag("Player").transform;
-        }
-        else
-        {
-            Debug.LogError("Объект с тегом 'Player' не найден!");
-        }
     }
 
+    // 3. [ServerCallback] означає, що цей Update виконується ТІЛЬКИ на сервері
+    [ServerCallback]
     void Update()
     {
-        if (playerTarget == null) return;
-        float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
+        // Періодично шукаємо найближчого гравця
+        searchTimer -= Time.deltaTime;
+        if (searchTimer <= 0)
+        {
+            FindClosestPlayer();
+            searchTimer = searchInterval;
+        }
 
-        if (distanceToPlayer <= chaseRange)
+        // Якщо цілі немає — стоїмо
+        if (targetTransform == null) return;
+
+        float distance = Vector3.Distance(transform.position, targetTransform.position);
+
+        if (distance <= chaseRange)
         {
             ChasePlayer();
         }
+        else
+        {
+            // Якщо гравець втік далеко - зупиняємось
+            agent.isStopped = true;
+        }
 
-        if (distanceToPlayer <= attackRange)
+        if (distance <= attackRange)
         {
             AttackPlayer();
         }
     }
 
-    void ChasePlayer()
+    [Server] // Цей метод викликається тільки на сервері
+    void FindClosestPlayer()
     {
-        agent.isStopped = false;
-        agent.SetDestination(playerTarget.position);
+        // Шукаємо ВСІХ гравців на карті
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+
+        float closestDistance = Mathf.Infinity;
+        Transform potentialTarget = null;
+
+        foreach (GameObject player in players)
+        {
+            float d = Vector3.Distance(transform.position, player.transform.position);
+
+            // Якщо цей гравець ближче за попереднього знайденого
+            if (d < closestDistance)
+            {
+                closestDistance = d;
+                potentialTarget = player.transform;
+            }
+        }
+
+        // Призначаємо ціль
+        targetTransform = potentialTarget;
     }
 
+    [Server]
+    void ChasePlayer()
+    {
+        if (targetTransform == null) return;
+
+        agent.isStopped = false;
+        agent.SetDestination(targetTransform.position);
+    }
+
+    [Server]
     void AttackPlayer()
     {
+        if (targetTransform == null) return;
+
         agent.isStopped = true;
-        Vector3 direction = (playerTarget.position - transform.position).normalized;
-        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
-        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * lookSpeed);
-        
+
+        // Поворот до гравця
+        Vector3 direction = (targetTransform.position - transform.position).normalized;
+        if (direction != Vector3.zero)
+        {
+            Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * lookSpeed);
+        }
+
+        // Тут можна додати логіку нанесення шкоди
+        // наприклад: targetTransform.GetComponent<PlayerHealth>().TakeDamage(10);
     }
 }

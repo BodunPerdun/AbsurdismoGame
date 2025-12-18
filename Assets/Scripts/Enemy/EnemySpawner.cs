@@ -1,53 +1,71 @@
 using UnityEngine;
+using Mirror; // 1. Додаємо Mirror
 
-public class EnemySpawner : MonoBehaviour
+public class EnemySpawner : NetworkBehaviour // 2. Успадковуємо від NetworkBehaviour
 {
-    [Header("Настройки Спавна")]
-    public int enemiesToSpawn = 1000;
-    public float spawnRadius = 50f; 
+    [Header("Налаштування Спавна")]
+    public int enemiesToSpawn = 50; // Для тесту краще почати з меншого числа
+    public float spawnRadius = 50f;
     private EnemyPooler pooler;
 
-    void Start()
+    // 3. Використовуємо OnStartServer замість Start
+    // Це гарантує, що код виконається тільки коли сервер готовий
+    public override void OnStartServer()
     {
-        pooler = FindObjectOfType<EnemyPooler>();
+        pooler = FindFirstObjectByType<EnemyPooler>(); // FindObjectOfType застаріло в нових Unity
 
         if (pooler == null)
         {
-            Debug.LogError("EnemyPooler не найден в сцене! Спавн невозможен.");
+            Debug.LogError("EnemyPooler не знайдено!");
             return;
         }
 
         SpawnEnemies();
     }
 
+    [Server] // 4. Гарантія, що метод викличе тільки сервер
     void SpawnEnemies()
     {
         int successfullySpawned = 0;
 
         for (int i = 0; i < enemiesToSpawn; i++)
         {
-            // 1. Запрашиваем врага из пула
             GameObject enemy = pooler.GetPooledEnemy();
 
             if (enemy != null)
             {
-                // 2. Генерируем случайную позицию в пределах радиуса
                 Vector3 randomPosition = transform.position + Random.insideUnitSphere * spawnRadius;
-                
-                // Убедимся, что враг спавнится на уровне земли (Y = 0 или свой уровень)
-                randomPosition.y = transform.position.y; 
-                enemy.transform.position = randomPosition;
-                enemy.SetActive(true);
-                successfullySpawned++;
+                randomPosition.y = transform.position.y;
 
-                // *Опционально: сбросить здоровье/настройки врага в скрипте врага*
+                enemy.transform.position = randomPosition;
+                enemy.transform.rotation = Quaternion.identity; // Бажано скинути поворот
+
+                // 5. Порядок дій для Mirror:
+                enemy.SetActive(true); // Спочатку вмикаємо фізично на сервері
+                NetworkServer.Spawn(enemy); // Потім кажемо мережі "Заспавни це у всіх клієнтів"
+
+                successfullySpawned++;
             }
             else
             {
-                Debug.LogWarning("Пул врагов исчерпан. Не удалось заспавнить всех.");
+                Debug.LogWarning("Пул вичерпано!");
                 break;
             }
         }
-        Debug.Log($"Успешно заспавнено {successfullySpawned} врагов.");
+        Debug.Log($"Заспавнено {successfullySpawned} ворогів через мережу.");
     }
+
+    // Приклад обробки смерті ворога (можна додати в EnemyBase.cs)
+    //[Server] // Обробка смерті тільки на сервері
+    //public void Die()
+    //{
+    //    // 1. Повідомляємо клієнтам, що об'єкт зникає
+    //    NetworkServer.UnSpawn(gameObject);
+
+    //    // 2. Вимикаємо його фізично на сервері (повертаємо в пулл)
+    //    gameObject.SetActive(false);
+
+    //    // Опціонально: Скинути здоров'я на максимум для наступного використання
+    //    currentHealth = maxHealth;
+    //}
 }
