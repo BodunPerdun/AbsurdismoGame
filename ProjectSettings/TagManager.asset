@@ -6,6 +6,8 @@ TagManager:
   tags:
   - FollowCamera
   - SwitchCamera
+  - Enemy
+  - Bullet
   layers:
   - Default
   - TransparentFX

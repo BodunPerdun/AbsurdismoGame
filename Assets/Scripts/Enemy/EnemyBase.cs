@@ -52,5 +52,26 @@ public class EnemyBase : NetworkBehaviour // 2. Успадковуємо від 
 
         // Опціонально: Скинути здоров'я на максимум для наступного використання
         currentHealth = maxHealth;
+
+        Debug.Log($"{gameObject.name} помер.");
+    }
+
+    [ServerCallback]
+    void OnTriggerEnter(Collider other)
+    {
+        // Приклад: якщо ворог натрапляє на кулю гравця
+        if (other.CompareTag("Bullet"))
+        {
+            Die();
+
+            // Припустимо, що куля має скрипт Bullet з інформацією про урон
+            ScriptedBullet bullet = other.GetComponent<ScriptedBullet>();
+            if (bullet != null)
+            {
+                TakeDamage(bullet.GetDamage());
+                // Після нанесення урону можна знищити кулю
+                bullet.ReturnToPool();
+            }
+        }
     }
 }

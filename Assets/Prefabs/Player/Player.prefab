@@ -2126,10 +2126,9 @@ GameObject:
   m_Component:
   - component: {fileID: 8072595125615334399}
   - component: {fileID: 8864957674925234594}
-  - component: {fileID: 7963719550035569580}
   - component: {fileID: 8699999639166061231}
   - component: {fileID: 2194773136957415918}
-  - component: {fileID: 418518638236025375}
+  - component: {fileID: 7963719550035569580}
   - component: {fileID: 345852658289310469}
   - component: {fileID: 9183152824288691751}
   - component: {fileID: 5714760030786817520}
@@ -2190,28 +2189,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: -0.03, y: 2.86, z: -0.05}
---- !u!95 &7963719550035569580
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8884562835580537157}
-  m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: a29b65cb8d7ac7148b30192d084531e2, type: 3}
-  m_Controller: {fileID: 9100000, guid: d2509897c53256440b51683d3885358f, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &8699999639166061231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2257,24 +2234,30 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   weapons:
-  - {fileID: 7831243671398253322}
+  - {fileID: 5591616962606102675}
   animator: {fileID: 7963719550035569580}
---- !u!111 &418518638236025375
-Animation:
+--- !u!95 &7963719550035569580
+Animator:
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8884562835580537157}
   m_Enabled: 1
-  serializedVersion: 4
-  m_Animation: {fileID: 7400000, guid: 9bbd193496eaa7c40a2d52c13934a516, type: 2}
-  m_Animations: []
-  m_WrapMode: 0
-  m_PlayAutomatically: 1
-  m_AnimatePhysics: 0
+  m_Avatar: {fileID: 9000000, guid: a29b65cb8d7ac7148b30192d084531e2, type: 3}
+  m_Controller: {fileID: 9100000, guid: d2509897c53256440b51683d3885358f, type: 2}
+  m_CullingMode: 0
   m_UpdateMode: 0
-  m_CullingType: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!64 &345852658289310469
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -2710,21 +2693,13 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8416152246042236764}
     m_Modifications:
+    - target: {fileID: 1103495395229909493, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
+      propertyPath: _assetId
+      value: 970595802
+      objectReference: {fileID: 0}
     - target: {fileID: 3058862435421015788, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
       propertyPath: m_Name
       value: revolver 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 26.587616
-      objectReference: {fileID: 0}
-    - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 3.798442
-      objectReference: {fileID: 0}
-    - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 3.9425282
       objectReference: {fileID: 0}
     - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2769,147 +2744,21 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 3058862435421015788, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
-      insertIndex: 2
-      addedObject: {fileID: 7831243671398253322}
-    - targetCorrespondingSourceObject: {fileID: 3058862435421015788, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7554836306266203093}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
---- !u!1 &473952775245661786 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3058862435421015788, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
-  m_PrefabInstance: {fileID: 3233745765672831158}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &7831243671398253322
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 473952775245661786}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e92f92d42f64e645af023221c359fa3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Pistol
-  weaponType: 2
-  damage: 23
-  fireRate: 4
-  bulletSpeed: 100
-  bulletPrefab: {fileID: 4570007014696999347, guid: 57be1e4f9117eed4abfca1fd42235253, type: 3}
-  firePoint: {fileID: 4387788223364118742}
-  shootSound: {fileID: 8300000, guid: 31a0eb8e4f39fcd46bcb081be32598c3, type: 3}
-  audioSource: {fileID: 7554836306266203093}
-  minPitch: 0.95
-  maxPitch: 1.05
-  minVolume: 0.9
-  maxVolume: 1
---- !u!82 &7554836306266203093
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 473952775245661786}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 31a0eb8e4f39fcd46bcb081be32598c3, type: 3}
-  m_PlayOnAwake: 0
-  m_Volume: 1
-  m_Pitch: 1
-  Loop: 0
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
---- !u!4 &4387788223364118742 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1154078741863395424, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
-  m_PrefabInstance: {fileID: 3233745765672831158}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5009972436613547582 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
   m_PrefabInstance: {fileID: 3233745765672831158}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5591616962606102675 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7023918479014440997, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
+  m_PrefabInstance: {fileID: 3233745765672831158}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e92f92d42f64e645af023221c359fa3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Pistol

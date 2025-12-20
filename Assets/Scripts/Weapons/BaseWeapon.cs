@@ -1,6 +1,7 @@
 using UnityEngine;
+using Mirror;
 
-public abstract class BaseWeapon : MonoBehaviour
+public abstract class BaseWeapon : NetworkBehaviour
 {
     [Header("Type")]
     public WeaponsTypes.WeaponType weaponType; // Тип зброї для аніматора
@@ -47,21 +48,36 @@ public abstract class BaseWeapon : MonoBehaviour
     protected abstract void PerformShot(Vector3 direction);
 
     // Базовий метод спавну кулі, приймає напрямок
+    [Server] // Гарантуємо, що спавнить тільки сервер
     protected void SpawnBullet(Vector3 direction)
-    {       
+    {
         if (bulletPrefab == null || firePoint == null) return;
 
-        GameObject bulletGO = Instantiate(bulletPrefab, firePoint.position, Quaternion.LookRotation(direction));
+        // ЗАМІСТЬ Instantiate: Беремо з пулу
+        // Переконайся, що BulletPool існує на сцені
+        if (BulletPool.Instance == null)
+        {
+            Debug.LogError("BulletPool не знайдено на сцені!");
+            return;
+        }
 
-        // Припускаємо, що у тебе є скрипт ScriptedBullet
+        GameObject bulletGO = BulletPool.Instance.GetBullet(firePoint.position, Quaternion.LookRotation(direction));
+
+        // Налаштовуємо скрипт кулі
         ScriptedBullet bulletScript = bulletGO.GetComponent<ScriptedBullet>();
         if (bulletScript != null)
         {
-            bulletScript.direction = direction; // Передаємо напрямок
-            bulletScript.speed = bulletSpeed;
-            bulletScript.damage = damage;
+            // Скидаємо старі параметри (важливо для пулу!)
+            bulletScript.ResetBullet();
+
+            bulletScript.SetDirection(direction);
+            bulletScript.SetSpeed(bulletSpeed);
+            bulletScript.SetDamage(damage);
         }
-        
+
+        // КРИТИЧНО ДЛЯ MIRROR:
+        // Кажемо клієнтам: "Гей, цей об'єкт тепер активний, покажіть його у себе!"
+        NetworkServer.Spawn(bulletGO);
     }
 
     protected void PlayShootSound()
