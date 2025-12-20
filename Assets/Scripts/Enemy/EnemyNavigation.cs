@@ -22,6 +22,23 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
         agent = GetComponent<NavMeshAgent>();
     }
 
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+
+        // Якщо це клієнт (не сервер), вимикаємо інтелект і фізику навігації
+        // Щоб ворог рухався ТІЛЬКИ так, як каже NetworkTransform
+        if (!isServer)
+        {
+            NavMeshAgent agent = GetComponent<NavMeshAgent>();
+            if (agent != null)
+            {
+                agent.enabled = false;
+            }
+
+         }
+    }
+
     // 3. [ServerCallback] означає, що цей Update виконується ТІЛЬКИ на сервері
     [ServerCallback]
     void Update()

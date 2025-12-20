@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
+using Mirror;
 
-public class WeaponsSwitching : MonoBehaviour
+public class WeaponsSwitching : NetworkBehaviour
 {
     [Header("Налаштування")]
     public BaseWeapon[] weapons;
@@ -15,12 +16,16 @@ public class WeaponsSwitching : MonoBehaviour
 
     void Start()
     {
+        if (!isOwned) return;
+
         // При старті: -1 (без зброї) або 0 (пістолет) — як ви захочете
         SelectWeapon(-1);
     }
 
     void Update()
     {
+        if (!isOwned) return;
+
         // Клавіша 1 -> Сховати зброю (індекс -1)
         if (Input.GetKeyDown(KeyCode.Alpha1)) SelectWeapon(-1);
 

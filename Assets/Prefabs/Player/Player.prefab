@@ -2134,6 +2134,8 @@ GameObject:
   - component: {fileID: 9183152824288691751}
   - component: {fileID: 5714760030786817520}
   - component: {fileID: 2870169402616662231}
+  - component: {fileID: 6819626534663095255}
+  - component: {fileID: 7594484208061695893}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -2222,14 +2224,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28c62d465117e394c8c105e6d92d5d8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
   move_speed: 20
   rotation_speed: 10
   dashSpeed: 25
   dashDuration: 0.25
   trail1: {fileID: 4274883615190098577}
   trail2: {fileID: 5715311591567898199}
+  mainCameraTag: FollowCamera
   forwardOffset: 0
   backwardOffset: 0
+  switchCameraTag: SwitchCamera
   _checkBaseCamera: {fileID: 0}
   keyToSwitchCamera: 113
   audioSource: {fileID: 9183152824288691751}
@@ -2246,6 +2253,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0c69998357ad1f478226f922ce64f92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponsSwitching
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
   weapons:
   - {fileID: 7831243671398253322}
   animator: {fileID: 7963719550035569580}
@@ -2422,6 +2432,57 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 5.2504363, z: 1}
   m_Center: {x: 0, y: 2.6248686, z: 0}
+--- !u!114 &6819626534663095255
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8884562835580537157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f6f3bf89aa97405989c802ba270f815, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mirror.Components::Mirror.NetworkAnimator
+  syncDirection: 1
+  syncMode: 0
+  syncInterval: 0
+  clientAuthority: 1
+  animator: {fileID: 7963719550035569580}
+--- !u!114 &7594484208061695893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8884562835580537157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ff3ba0becae47b8b9381191598957c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mirror.Components::Mirror.NetworkTransformReliable
+  syncDirection: 1
+  syncMode: 0
+  syncInterval: 0
+  target: {fileID: 8072595125615334399}
+  syncPosition: 1
+  syncRotation: 1
+  syncScale: 0
+  onlySyncOnChange: 1
+  compressRotation: 1
+  interpolatePosition: 1
+  interpolateRotation: 1
+  interpolateScale: 1
+  coordinateSpace: 1
+  timelineOffset: 1
+  showGizmos: 0
+  showOverlay: 0
+  overlayColor: {r: 0, g: 0, b: 0, a: 0.5}
+  onlySyncOnChangeCorrectionMultiplier: 2
+  useFixedUpdate: 0
+  rotationSensitivity: 0.01
+  positionPrecision: 0.01
+  scalePrecision: 0.01
 --- !u!1 &8935498514350556784
 GameObject:
   m_ObjectHideFlags: 0

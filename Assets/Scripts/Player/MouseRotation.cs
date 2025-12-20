@@ -116,10 +116,6 @@ public class MouseRotation : NetworkBehaviour
         {            
             activeWeapon.TryShoot(direction);
         }
-        // Для автоматичної черги пострілів
-        else if (Input.GetButton("Fire2") && activeWeapon != null)
-        {
-            activeWeapon.TryShoot(direction);
-        }
+       
     }
 }

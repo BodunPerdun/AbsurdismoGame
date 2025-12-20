@@ -10,6 +10,14 @@ public class EnemyBase : NetworkBehaviour // 2. Успадковуємо від 
     [SyncVar]
     private float currentHealth;
 
+    // Викликається на клієнті, коли об'єкт з'являється в мережі
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+        // Примусово вмикаємо об'єкт, бо Mirror міг заспавнити його вимкненим
+        gameObject.SetActive(true);
+    }
+
     // 4. Використовуємо OnEnable для скидання здоров'я
     // Цей метод спрацьовує щоразу, коли об'єкт дістають з пулу (SetActive(true))
     void OnEnable()
