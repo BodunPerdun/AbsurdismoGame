@@ -7,74 +7,109 @@ public class WeaponsSwitching : NetworkBehaviour
     public BaseWeapon[] weapons;
     public Animator animator;
 
-    // Початкове значення -1 означає "без зброї"
+    [Header("Combat")]
+    public Camera playerCamera;
+
+    // [SyncVar] - головна зміна. 
+    // Коли ця змінна змінюється на сервері, Mirror автоматично оновлює її у всіх клієнтів
+    // і викликає метод 'OnWeaponChanged'.
+    [SyncVar(hook = nameof(OnWeaponChanged))]
     private int activeWeaponIndex = -1;
 
-    // Безпечна перевірка: якщо індекс -1, повертаємо null
     private BaseWeapon CurrentWeapon =>
         (activeWeaponIndex >= 0 && activeWeaponIndex < weapons.Length) ? weapons[activeWeaponIndex] : null;
 
-    void Start()
+    public override void OnStartClient()
     {
-        if (!isOwned) return;
-
-        // При старті: -1 (без зброї) або 0 (пістолет) — як ви захочете
-        SelectWeapon(-1);
+        base.OnStartClient();
+        // Примусово оновлюємо візуал при старті, щоб сховати зброю
+        UpdateWeaponVisuals(activeWeaponIndex);
     }
 
     void Update()
     {
+        // Обробка натискань тільки для власника
         if (!isOwned) return;
 
-        // Клавіша 1 -> Сховати зброю (індекс -1)
-        if (Input.GetKeyDown(KeyCode.Alpha1)) SelectWeapon(-1);
-
-        // Клавіша 2 -> Перша зброя в масиві (індекс 0)
-        if (Input.GetKeyDown(KeyCode.Alpha2)) SelectWeapon(0);
-
-        // Клавіша 3 -> Друга зброя в масиві (індекс 1)
-        if (Input.GetKeyDown(KeyCode.Alpha3) && weapons.Length > 1) SelectWeapon(1);
+        // Ми більше не викликаємо SelectWeapon напряму. Ми просимо сервер змінити зброю.
+        if (Input.GetKeyDown(KeyCode.Alpha1)) CmdSelectWeapon(-1);
+        if (Input.GetKeyDown(KeyCode.Alpha2)) CmdSelectWeapon(0);
+        if (Input.GetKeyDown(KeyCode.Alpha3) && weapons.Length > 1) CmdSelectWeapon(1);
     }
 
-    void SelectWeapon(int index)
+    // --- ПУБЛІЧНИЙ МЕТОД ДЛЯ СТРІЛЬБИ (викликається з MouseRotation) ---
+    public void Fire(Vector3 direction)
     {
-        // КРОК 1: Спочатку вимикаємо АБСОЛЮТНО ВСЮ зброю
+        // Тільки якщо ми маємо зброю, надсилаємо запит на постріл
+        if (activeWeaponIndex != -1)
+        {
+            CmdFire(direction);
+        }
+    }
+
+    // --- КОМАНДИ (Виконуються на Сервері) ---
+
+    [Command]
+    void CmdSelectWeapon(int index)
+    {
+        // Перевірка валідності індексу
+        if (index >= -1 && index < weapons.Length)
+        {
+            // Змінюємо змінну. 
+            // Оскільки це SyncVar, Mirror автоматично викличе OnWeaponChanged на всіх клієнтах!
+            activeWeaponIndex = index;
+        }
+    }
+
+    [Command]
+    void CmdFire(Vector3 direction)
+    {
+        BaseWeapon weapon = CurrentWeapon;
+        // Тепер сервер знає правильний індекс, тому weapon не буде null
+        if (weapon != null)
+        {
+            weapon.TryShoot(direction);
+        }
+    }
+
+    // --- ВІЗУАЛІЗАЦІЯ (Hook) ---
+
+    // Цей метод викликається автоматично Mirror, коли змінюється activeWeaponIndex
+    void OnWeaponChanged(int oldIndex, int newIndex)
+    {
+        UpdateWeaponVisuals(newIndex);
+    }
+
+    void UpdateWeaponVisuals(int index)
+    {
+        // 1. Вимикаємо ВСЮ зброю
         for (int i = 0; i < weapons.Length; i++)
         {
-            weapons[i].gameObject.SetActive(false);
-
-            weapons[i].SetSelectStatus(false);
-            
+            if (weapons[i] != null)
+            {
+                weapons[i].gameObject.SetActive(false);
+                weapons[i].SetSelectStatus(false);
+            }
         }
 
-        // КРОК 2: Обробка режиму "Без зброї"
+        // 2. Якщо режим "без зброї"
         if (index == -1)
         {
-            activeWeaponIndex = -1;
-
-            // Якщо є аніматор, кажемо йому перейти в стан без зброї
-            if (animator != null)
-            {
-                // Припускаємо, що -1 в аніматорі налаштовано як "Empty/Unarmed"
-                animator.SetInteger("WeaponType", -1);
-            }
-            return; // Виходимо з функції, бо вмикати нічого не треба
+            if (animator != null) animator.SetInteger("WeaponType", -1);
+            return;
         }
 
-        // КРОК 3: Перевірка на помилки (щоб не вийти за межі масиву)
-        if (index < 0 || index >= weapons.Length) return;
-
-        // КРОК 4: Вмикаємо потрібну зброю
-        activeWeaponIndex = index;
-        weapons[activeWeaponIndex].gameObject.SetActive(true);
-        weapons[activeWeaponIndex].SetSelectStatus(true);
-
-        // КРОК 5: Оновлюємо анімацію
-        if (animator != null)
+        // 3. Вмикаємо нову зброю
+        if (index >= 0 && index < weapons.Length)
         {
-            animator.SetInteger("WeaponType", (int) activeWeaponIndex);
+            if (weapons[index] != null)
+            {
+                weapons[index].gameObject.SetActive(true);
+                weapons[index].SetSelectStatus(true);
+            }
+            if (animator != null) animator.SetInteger("WeaponType", index);
         }
     }
 
-    public BaseWeapon GetActiveWeapon(){return CurrentWeapon;}
+    public BaseWeapon GetActiveWeapon() { return CurrentWeapon; }
 }

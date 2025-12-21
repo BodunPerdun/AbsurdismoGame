@@ -1,7 +1,7 @@
 using UnityEngine;
 using Mirror;
 
-public abstract class BaseWeapon : NetworkBehaviour
+public abstract class BaseWeapon : MonoBehaviour
 {
     [Header("Type")]
     public WeaponsTypes.WeaponType weaponType; // Тип зброї для аніматора
@@ -35,6 +35,11 @@ public abstract class BaseWeapon : NetworkBehaviour
         {
             nextTimetoFire = Time.time + 1f / fireRate;
 
+            // Ефекти (тряска камери) - це спрацює тільки локально, якщо викликати на клієнті,
+            // але оскільки ми стріляємо через сервер, тряску треба робити окремо (Rpc), 
+            // або ігнорувати, якщо сервер - це не гравець.
+            // Для простоти поки залишимо так, але пам'ятай про це.
+
             // Якщо є CameraManager, викликаємо тряску
             if (CameraManager.Instance != null)
                 CameraManager.Instance.CameraShake(1.3f);
@@ -48,35 +53,27 @@ public abstract class BaseWeapon : NetworkBehaviour
     protected abstract void PerformShot(Vector3 direction);
 
     // Базовий метод спавну кулі, приймає напрямок
-    [Server] // Гарантуємо, що спавнить тільки сервер
     protected void SpawnBullet(Vector3 direction)
     {
         if (bulletPrefab == null || firePoint == null) return;
-
-        // ЗАМІСТЬ Instantiate: Беремо з пулу
-        // Переконайся, що BulletPool існує на сцені
         if (BulletPool.Instance == null)
         {
-            Debug.LogError("BulletPool не знайдено на сцені!");
+            Debug.LogError("BulletPool не знайдено!");
             return;
         }
 
         GameObject bulletGO = BulletPool.Instance.GetBullet(firePoint.position, Quaternion.LookRotation(direction));
 
-        // Налаштовуємо скрипт кулі
         ScriptedBullet bulletScript = bulletGO.GetComponent<ScriptedBullet>();
         if (bulletScript != null)
         {
-            // Скидаємо старі параметри (важливо для пулу!)
             bulletScript.ResetBullet();
-
             bulletScript.SetDirection(direction);
             bulletScript.SetSpeed(bulletSpeed);
             bulletScript.SetDamage(damage);
         }
 
-        // КРИТИЧНО ДЛЯ MIRROR:
-        // Кажемо клієнтам: "Гей, цей об'єкт тепер активний, покажіть його у себе!"
+        // NetworkServer.Spawn працює глобально, тому тут все ок
         NetworkServer.Spawn(bulletGO);
     }
 

@@ -109,12 +109,12 @@ public class MouseRotation : NetworkBehaviour
     {
         BaseWeapon activeWeapon = weaponsSwitching.GetActiveWeapon();
 
-        if (activeWeapon == null) return;
+        if (activeWeapon == null || weaponsSwitching == null) return;
 
         // Для одиночної черги пострілів
         if (Input.GetButtonDown("Fire1") && activeWeapon != null)
-        {            
-            activeWeapon.TryShoot(direction);
+        {
+            weaponsSwitching.Fire(direction);
         }
        
     }

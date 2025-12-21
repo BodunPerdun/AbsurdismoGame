@@ -1713,7 +1713,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   bulletPrefab: {fileID: 4570007014696999347, guid: 57be1e4f9117eed4abfca1fd42235253, type: 3}
-  poolSize: 60000
+  poolSize: 6000
 --- !u!1001 &1566127625
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -16,6 +16,12 @@ public class ScriptedBullet : NetworkBehaviour
         Invoke(nameof(ReturnToPool), lifeTime);
     }
 
+    // Додатковий захист: якщо кулю вимкнули раніше часу, скасовуємо таймер
+    void OnDisable()
+    {
+        CancelInvoke(nameof(ReturnToPool));
+    }
+
     // Цей метод викликаємо з BaseWeapon, щоб очистити стару інерцію
     public void ResetBullet()
     {
@@ -24,7 +30,8 @@ public class ScriptedBullet : NetworkBehaviour
 
         // Якщо є Rigidbody, обов'язково обнуляємо його!
         Rigidbody rb = GetComponent<Rigidbody>();
-        if (rb != null)
+
+        if (rb != null && !rb.isKinematic)
         {
             rb.linearVelocity = Vector3.zero; // (у нових Unity) або rb.velocity
             rb.angularVelocity = Vector3.zero;
@@ -66,13 +73,19 @@ public class ScriptedBullet : NetworkBehaviour
     //    }
     //}
 
-    [Server]
+    [ServerCallback]
     public void ReturnToPool()
     {
-        // Перевірка на випадок, якщо об'єкт вже вимкнено
-        if (gameObject.activeSelf)
+        // Перевіряємо, чи є пул і чи активна куля, щоб не викликати помилок
+        if (BulletPool.Instance != null && gameObject.activeSelf)
         {
             BulletPool.Instance.ReturnBullet(gameObject);
+        }
+        else if (gameObject.activeSelf)
+        {
+            // Якщо пулу немає (наприклад, при зупинці гри), просто вимикаємо
+            NetworkServer.UnSpawn(gameObject);
+            gameObject.SetActive(false);
         }
     }
 }

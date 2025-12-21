@@ -10,10 +10,9 @@ public class PlayerController : NetworkBehaviour
     public float rotation_speed;
 
     private CharacterController ch;
-    private Vector3 currentMoveDirection;
-    private float acceleration = 100f;
-    private Vector3 targetVelocity;
     private Vector3 currentVelocity;
+    private Vector3 targetVelocity;
+    private float acceleration = 100f;
 
     [Header("Dash Settings")]
     public float dashSpeed = 25f;
@@ -33,12 +32,35 @@ public class PlayerController : NetworkBehaviour
     public string switchCameraTag = "SwitchCamera"; // Тег другої камери (додайте цей тег в Unity)
     [SerializeField] private CinemachineCamera _checkBaseCamera; // Можна залишити пустим, знайде саме
 
-    [Header("Input Settings")]
-    [SerializeField] private KeyCode keyToSwitchCamera = KeyCode.Q;
+    //[Header("Input System Settings")]
+    //// 2. Посилання на дії (Actions), які ми створимо в редакторі
+    //public InputActionReference moveAction;        // Для руху (WASD)
+    //public InputActionReference dashAction;        // Для ривка (Shift)
+    //public InputActionReference switchCameraAction; // Для зміни камери
+    private PlayerControls controls;
+
     private bool isPlayerCamera = true; // true = Main, false = Second
 
     public AudioSource audioSource;
     public AudioClip dashSound;
+
+    void Awake()
+    {
+        // Створюємо екземпляр керування при появі об'єкта
+        controls = new PlayerControls();
+    }
+
+    void OnEnable()
+    {
+        // Вмикаємо керування
+        controls.Player.Enable();
+    }
+
+    void OnDisable()
+    {
+        // Вимикаємо керування
+        controls.Player.Disable();
+    }
 
     void Start()
     {
@@ -97,38 +119,43 @@ public class PlayerController : NetworkBehaviour
         if (!isOwned) return;
 
         // --- ЛОГІКА ПЕРЕМИКАННЯ КАМЕРИ ---
-        if (Input.GetKeyDown(keyToSwitchCamera))
+        // WasPressedThisFrame() замінює Input.GetKeyDown()
+        if (controls.Player.SwitchCamera.WasPressedThisFrame())
         {
             SwitchToCamera();
         }
 
-        // Керування офсетом працює ТІЛЬКИ якщо активна основна камера
+        // Читаємо вектор руху (x, y) одразу. Це замінює Input.GetAxis або перевірку WASD
+        Vector2 inputVector = controls.Player.Move.ReadValue<Vector2>();
+
+        // Керування офсетом
         if (isPlayerCamera)
         {
-            cameraTargetTracking(Input.GetKey(KeyCode.W), Input.GetKey(KeyCode.S));
+            // Перевіряємо напрямок по Y (W = >0, S = <0)
+            bool pressingForward = inputVector.y > 0.1f;
+            bool pressingBack = inputVector.y < -0.1f;
+            cameraTargetTracking(pressingForward, pressingBack);
         }
 
         // --- РУХ ПЕРСОНАЖА ---
-        HandleMovement();
+        HandleMovement(inputVector);
     }
 
     // Виніс рух в окремий метод для чистоти коду
-    void HandleMovement()
+    void HandleMovement(Vector2 input)
     {
-        Vector3 rawInput = Vector3.zero;
-        bool isMoving = false;
+        // Конвертуємо 2D інпут (X, Y) у 3D вектор руху (X, 0, Z)
+        Vector3 rawInput = new Vector3(input.x, 0, input.y);
 
-        if (Input.GetKey(KeyCode.W)) { rawInput += Vector3.forward; isMoving = true; }
-        if (Input.GetKey(KeyCode.S)) { rawInput += Vector3.back; isMoving = true; }
-        if (Input.GetKey(KeyCode.D)) { rawInput += Vector3.right; isMoving = true; }
-        if (Input.GetKey(KeyCode.A)) { rawInput += Vector3.left; isMoving = true; }
-
-        if (Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.D)) { isMoving = false; }
-        if (Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.S)) { isMoving = false; }
+        // Перевіряємо, чи рухаємось ми (magnitude > 0)
+        // Нова система сама обробляє протилежні клавіші (A+D дасть 0), тому ручні перевірки не треба
+        bool isMoving = rawInput.sqrMagnitude > 0.01f;
 
         if (isMoving)
         {
-            if (Input.GetKeyDown(KeyCode.LeftShift)) Dash();
+            // Перевірка на Dash (заміна Input.GetKeyDown(KeyCode.LeftShift))
+            if (controls.Player.Dash.WasPressedThisFrame()) Dash();
+
             if (isDashing) return;
         }
 
@@ -138,8 +165,14 @@ public class PlayerController : NetworkBehaviour
         if (isMoving)
         {
             targetVelocity = desiredDirection * move_speed;
-            Quaternion targetRotation = Quaternion.LookRotation(desiredDirection);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotation_speed * Time.deltaTime);
+
+            // Поворот персонажа
+            if (desiredDirection != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(desiredDirection);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotation_speed * Time.deltaTime);
+            }
+
             currentVelocity = Vector3.Lerp(currentVelocity, targetVelocity, acceleration * Time.deltaTime);
 
             animator.SetFloat("SpeedInput", currentVelocity.magnitude);
@@ -148,8 +181,11 @@ public class PlayerController : NetworkBehaviour
         else
         {
             targetVelocity = Vector3.zero;
+            // Якщо треба плавно зупинятися, лишаємо Lerp, якщо миттєво - просто скидаємо
+            currentVelocity = Vector3.Lerp(currentVelocity, Vector3.zero, acceleration * Time.deltaTime);
         }
     }
+
 
     void Dash()
     {

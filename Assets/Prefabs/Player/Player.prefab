@@ -2215,7 +2215,6 @@ MonoBehaviour:
   backwardOffset: 0
   switchCameraTag: SwitchCamera
   _checkBaseCamera: {fileID: 0}
-  keyToSwitchCamera: 113
   audioSource: {fileID: 9183152824288691751}
   dashSound: {fileID: 8300000, guid: 98407eb4d2a19b640b452b24969e7d61, type: 3}
 --- !u!114 &2194773136957415918
@@ -2700,6 +2699,10 @@ PrefabInstance:
     - target: {fileID: 3058862435421015788, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
       propertyPath: m_Name
       value: revolver 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3058862435421015788, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
       propertyPath: m_LocalPosition.x
