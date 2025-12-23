@@ -2548,8 +2548,12 @@ PrefabInstance:
       value: 3277576944
       objectReference: {fileID: 0}
     - target: {fileID: 8533559527100028100, guid: a3d8a1202cb3e6d46b2cb689890cd92d, type: 3}
+      propertyPath: spawnRadius
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 8533559527100028100, guid: a3d8a1202cb3e6d46b2cb689890cd92d, type: 3}
       propertyPath: enemiesToSpawn
-      value: 10
+      value: 50
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
