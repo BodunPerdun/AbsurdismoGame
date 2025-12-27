@@ -7008,6 +7008,7 @@ MonoBehaviour:
   syncInterval: 0
   move_speed: 20
   rotation_speed: 10
+  maxHealth: 100
   dashSpeed: 25
   dashDuration: 0.25
   trail1: {fileID: 4274883615190098577}
@@ -7212,11 +7213,11 @@ BoxCollider:
     m_Bits: 0
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
-  m_ProvidesContacts: 0
+  m_ProvidesContacts: 1
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 5.2504363, z: 1}
-  m_Center: {x: 0, y: 2.6248686, z: 0}
+  m_Size: {x: 1.7480211, y: 5.713347, z: 1}
+  m_Center: {x: 0.042200327, y: 2.856324, z: 0}
 --- !u!114 &6819626534663095255
 MonoBehaviour:
   m_ObjectHideFlags: 0

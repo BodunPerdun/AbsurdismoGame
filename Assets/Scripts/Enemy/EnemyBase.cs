@@ -6,6 +6,9 @@ public class EnemyBase : NetworkBehaviour // 2. Успадковуємо від 
     [Header("Health Settings")]
     public float maxHealth = 100f;
 
+    [Header("damage inflicted")]
+    private float damageInflicted = 10f;
+
     // 3. SyncVar дозволяє автоматично передавати значення HP клієнтам (корисно для смужки здоров'я)
     [SyncVar]
     private float currentHealth;
@@ -71,5 +74,10 @@ public class EnemyBase : NetworkBehaviour // 2. Успадковуємо від 
                 bullet.ReturnToPool();
             }
         }
+    }
+
+    public float GetEnemyDamage()
+    {
+        return damageInflicted;
     }
 }
