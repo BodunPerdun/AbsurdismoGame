@@ -8,10 +8,18 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
     private NavMeshAgent agent;
     private Transform targetTransform;
 
+    private PlayerController targetController; // Посилання на контролер гравця
+
     [Header("AI Settings")]
     public float chaseRange = 15f;
     public float attackRange = 2f;
     public float lookSpeed = 5f;
+
+    // Змінні для частоти атак в EnemyAI
+    [Header("Combat Settings")]
+    public float attackInterval = 1.5f; // Ворог б'є кожні 1.5 сек
+    private float lastAttackTime;
+    public float damageAmount = 10f; // Сила удару
 
     // Інтервал пошуку гравця (щоб не навантажувати процесор кожного кадру)
     private float searchTimer;
@@ -43,6 +51,18 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
     [ServerCallback]
     void Update()
     {
+        // 1. Якщо у нас є ціль, перевіряємо, чи вона не померла "щойно"
+        if (targetTransform != null && targetController != null)
+        {
+            if (targetController.GetPlayerIsDead())
+            {
+                // Ціль померла під час погоні - забуваємо її
+                targetTransform = null;
+                targetController = null;
+                agent.isStopped = true;
+            }
+        }
+
         // Періодично шукаємо найближчого гравця
         searchTimer -= Time.deltaTime;
         if (searchTimer <= 0)
@@ -80,9 +100,14 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
 
         float closestDistance = Mathf.Infinity;
         Transform potentialTarget = null;
+        PlayerController bestController = null;
 
         foreach (GameObject player in players)
         {
+            PlayerController pc = player.GetComponent<PlayerController>();
+
+            if (pc == null || pc.GetPlayerIsDead()) continue; // Пропускаємо мертвих гравців 
+
             float d = Vector3.Distance(transform.position, player.transform.position);
 
             // Якщо цей гравець ближче за попереднього знайденого
@@ -90,11 +115,13 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
             {
                 closestDistance = d;
                 potentialTarget = player.transform;
+                bestController = pc;
             }
         }
 
         // Призначаємо ціль
         targetTransform = potentialTarget;
+        targetController = bestController;
     }
 
     [Server]
@@ -121,7 +148,18 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
             transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * lookSpeed);
         }
 
-        // Тут можна додати логіку нанесення шкоди
-        // наприклад: targetTransform.GetComponent<PlayerHealth>().TakeDamage(10);
+        if (Time.time >= lastAttackTime + attackInterval)
+        {
+            // Наносимо урон конкретному гравцю через збережене посилання
+            targetController.TakeDamage(damageAmount);
+
+            Debug.Log($"Enemy attacked player for {damageAmount} damage");
+
+            // Оновлюємо таймер
+            lastAttackTime = Time.time;
+
+            // Тут можна запустити анімацію удару через NetworkAnimator
+            // GetComponent<NetworkAnimator>().SetTrigger("Attack");
+        }
     }
 }

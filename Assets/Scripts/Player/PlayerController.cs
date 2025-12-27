@@ -14,6 +14,12 @@ public class PlayerController : NetworkBehaviour
     private Vector3 targetVelocity;
     private float acceleration = 100f;
 
+    [Header("Health Settings")]
+    [SerializeField] private float maxHealth = 100f;
+    [SyncVar]
+    private float currentHealth = 100f;
+    private bool isDead = false;
+
     [Header("Dash Settings")]
     public float dashSpeed = 25f;
     public float dashDuration = 0.2f;
@@ -30,13 +36,8 @@ public class PlayerController : NetworkBehaviour
 
     [Header("Second Camera Settings")]
     public string switchCameraTag = "SwitchCamera"; // Тег другої камери (додайте цей тег в Unity)
-    [SerializeField] private CinemachineCamera _checkBaseCamera; // Можна залишити пустим, знайде саме
+    [SerializeField] private CinemachineCamera _checkBaseCamera; // Можна залишити пустим, знайде 
 
-    //[Header("Input System Settings")]
-    //// 2. Посилання на дії (Actions), які ми створимо в редакторі
-    //public InputActionReference moveAction;        // Для руху (WASD)
-    //public InputActionReference dashAction;        // Для ривка (Shift)
-    //public InputActionReference switchCameraAction; // Для зміни камери
     private PlayerControls controls;
 
     private bool isPlayerCamera = true; // true = Main, false = Second
@@ -67,6 +68,11 @@ public class PlayerController : NetworkBehaviour
         // У Mirror краще ініціалізувати компоненти тут, а логіку мережі в OnStartLocalPlayer
         ch = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
+
+        if(isServer)
+        {
+            currentHealth = this.maxHealth;
+        }
     }
 
     // Викликається тільки для локального гравця
@@ -116,7 +122,7 @@ public class PlayerController : NetworkBehaviour
 
     void LateUpdate()
     {
-        if (!isOwned) return;
+        if (!isOwned || isDead) return;
 
         // --- ЛОГІКА ПЕРЕМИКАННЯ КАМЕРИ ---
         // WasPressedThisFrame() замінює Input.GetKeyDown()
@@ -144,6 +150,8 @@ public class PlayerController : NetworkBehaviour
     // Виніс рух в окремий метод для чистоти коду
     void HandleMovement(Vector2 input)
     {
+        if(isDead) return;
+
         // Конвертуємо 2D інпут (X, Y) у 3D вектор руху (X, 0, Z)
         Vector3 rawInput = new Vector3(input.x, 0, input.y);
 
@@ -186,6 +194,11 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+    public bool GetPlayerIsDead()
+    {
+        return isDead;
+    }
+
 
     void Dash()
     {
@@ -206,6 +219,8 @@ public class PlayerController : NetworkBehaviour
         float startTime = Time.time;
         while (Time.time < startTime + dashDuration)
         {
+            if(isDead) break;
+
             ch.Move(direction * move_speed * Time.deltaTime * 3);
             yield return null;
         }
@@ -250,6 +265,116 @@ public class PlayerController : NetworkBehaviour
         {
             // Вмикаємо другу камеру
             CameraManager.Instance.SwitchToCamera(_checkBaseCamera);
+        }
+    }
+
+    public float GetHealth()
+    {
+        return maxHealth;
+    }
+
+    public void SetHealth(float health)
+    {
+        maxHealth = health;
+    }
+
+    // --- ЛОГІКА ЗДОРОВ'Я ТА СМЕРТІ (SERVER SIDE) ---
+    [Server]
+    public void TakeDamage(float damageAmount)
+    {
+        if (isDead) return;
+
+        currentHealth -= damageAmount; 
+        Debug.Log($"Player took damage. HP: {currentHealth}");
+        
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+
+    [Server]
+    private void Die()
+    {
+        isDead = true;
+        Debug.Log("Player has died.");
+        // Тут можна додати логіку респавну або інші дії при смерті гравця
+        RpcOnDeath();
+
+        StartCoroutine(RespawnRountime());
+    }
+
+    [Server]
+    private IEnumerator RespawnRountime()
+    {
+        for(int i = 5; i > 0; i--)
+        {
+            Debug.Log($"Respawning in {i} seconds...");
+            yield return new WaitForSeconds(1f);
+        }
+
+        Respawn();
+    }
+
+    [Server]
+    private void Respawn()
+    {
+        isDead = false;
+        currentHealth = maxHealth;
+
+        Transform startPos = NetworkManager.singleton.GetStartPosition();
+        Vector3 spawnPoint = startPos != null ? startPos.position : Vector3.zero;
+
+        RpcOnRespawn(spawnPoint);
+
+        transform.position = spawnPoint;
+
+        Debug.Log("Player has respawned.");
+    }
+
+    [ClientRpc]
+    void RpcOnDeath()
+    {
+        isDead = true;
+
+        //// Локальна логіка смерті (анімації, ефекти тощо)
+        //if (isOwned)
+        //{
+        //    animator.SetTrigger("Die");
+        //}
+
+        // Краще вимкнути візуал:
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();
+        foreach (var r in renderers)
+        {
+            r.enabled = false;
+        }
+
+        // Вимикаємо колізію, щоб вороги не стріляли в труп
+        if (ch != null) ch.enabled = false;
+    }
+
+    [ClientRpc]
+    void RpcOnRespawn(Vector3 spawnPoint)
+    {
+        //// Локальна логіка респавну (анімації, ефекти тощо)
+        //if (isOwned)
+        //{
+        //    animator.SetTrigger("Respawn");
+        //}
+        // Вмикаємо колізію назад
+        if (ch != null) ch.enabled = false;
+        // Переміщаємо гравця на точку спавну
+        transform.position = spawnPoint;
+        if(ch != null) ch.enabled = true;
+
+        isDead = false;
+
+        // Вмикаємо візуал назад
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();
+        foreach (var r in renderers)
+        {
+            r.enabled = true;
         }
     }
 }
