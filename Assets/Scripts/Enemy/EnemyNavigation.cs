@@ -10,6 +10,8 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
 
     private PlayerController targetController; // Посилання на контролер гравця
 
+    public NetworkAnimator networkAnimator;
+
     [Header("AI Settings")]
     public float chaseRange = 15f;
     public float attackRange = 2f;
@@ -159,7 +161,7 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
             lastAttackTime = Time.time;
 
             // Тут можна запустити анімацію удару через NetworkAnimator
-            // GetComponent<NetworkAnimator>().SetTrigger("Attack");
+            networkAnimator.SetTrigger("Attack");
         }
     }
 }

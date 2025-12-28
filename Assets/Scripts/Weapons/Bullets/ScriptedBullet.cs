@@ -3,6 +3,9 @@ using Mirror;
 
 public class ScriptedBullet : NetworkBehaviour
 {
+    [HideInInspector] 
+    private GameObject owner; // Хто вистрілив
+
     private float speed;
     private float damage;
     private Vector3 direction;
@@ -45,6 +48,7 @@ public class ScriptedBullet : NetworkBehaviour
     public float GetDamage() { return this.damage; }
     public Vector3 GetDirection() { return this.direction; }
     public float GetSpeed() { return this.speed; }
+    public GameObject GetOwner() { return this.owner; }
 
     [ServerCallback]
     void Update()

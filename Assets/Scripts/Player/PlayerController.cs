@@ -45,6 +45,11 @@ public class PlayerController : NetworkBehaviour
     public AudioSource audioSource;
     public AudioClip dashSound;
 
+    // ================
+    [SyncVar]
+    private float coins = 0f;
+    //=================
+
     void Awake()
     {
         // Створюємо екземпляр керування при появі об'єкта
@@ -198,7 +203,6 @@ public class PlayerController : NetworkBehaviour
     {
         return isDead;
     }
-
 
     void Dash()
     {
@@ -376,5 +380,12 @@ public class PlayerController : NetworkBehaviour
         {
             r.enabled = true;
         }
+    }
+
+    [Server]
+    public void AddCoins(float amount)
+    {
+        coins += amount;
+        Debug.Log($"Гравець отримав {amount} монет. Баланс: {coins}");
     }
 }

@@ -382,6 +382,7 @@ MonoBehaviour:
   - {fileID: 5338132823101386166, guid: 0a960e93d4ec57e4b9a10f65735766d6, type: 3}
   - {fileID: 7009841015172631010, guid: 4afb25d0c05667b4586133cbd8c68210, type: 3}
   - {fileID: 4570007014696999347, guid: 57be1e4f9117eed4abfca1fd42235253, type: 3}
+  - {fileID: 8381736439752429403, guid: 4844040a363eb864b8eb5bbb94f47170, type: 3}
   exceptionsDisconnect: 1
   snapshotSettings:
     bufferTimeMultiplier: 2
@@ -1713,7 +1714,24 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   bulletPrefab: {fileID: 4570007014696999347, guid: 57be1e4f9117eed4abfca1fd42235253, type: 3}
-  poolSize: 6000
+  poolSize: 100
+--- !u!114 &1563561810
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1563561802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 552bbb29b80d5b4499429668ede6ad7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LootPool
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  lootPrefab: {fileID: 8381736439752429403, guid: 4844040a363eb864b8eb5bbb94f47170, type: 3}
+  poolSize: 20
 --- !u!1001 &1566127625
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2553,7 +2571,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8533559527100028100, guid: a3d8a1202cb3e6d46b2cb689890cd92d, type: 3}
       propertyPath: enemiesToSpawn
-      value: 50
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2642,6 +2660,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 3785874480498970599, guid: b61ef570a0dd984488a4c178fcfeb3b7, type: 3}
+      propertyPath: poolSize
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 3785874480498970599, guid: b61ef570a0dd984488a4c178fcfeb3b7, type: 3}
       propertyPath: enemyPrefab
       value: 
       objectReference: {fileID: 7009841015172631010, guid: 4afb25d0c05667b4586133cbd8c68210, type: 3}
@@ -2700,6 +2722,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5710005170027657956, guid: b61ef570a0dd984488a4c178fcfeb3b7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1563561806}
+    - targetCorrespondingSourceObject: {fileID: 5710005170027657956, guid: b61ef570a0dd984488a4c178fcfeb3b7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1563561810}
   m_SourcePrefab: {fileID: 100100000, guid: b61ef570a0dd984488a4c178fcfeb3b7, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

@@ -144,9 +144,12 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
+  networkAnimator: {fileID: 7161141025294421899}
   chaseRange: 1000
   attackRange: 2
   lookSpeed: 100
+  attackInterval: 1.5
+  damageAmount: 10
 --- !u!114 &965393551591960973
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -163,6 +166,9 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   maxHealth: 30
+  totalReward: 100
+  directDepositPercent: 0.3
+  lootPrefab: {fileID: 8381736439752429403, guid: 4844040a363eb864b8eb5bbb94f47170, type: 3}
 --- !u!136 &2578002849979805322
 CapsuleCollider:
   m_ObjectHideFlags: 0
