@@ -105,7 +105,7 @@ public class EnemyBase : NetworkBehaviour // 2. Успадковуємо від 
         // Приклад: якщо ворог натрапляє на кулю гравця
         if (other.CompareTag("Bullet"))
         {
-            // Припустимо, що куля має скрипт Bullet з інформацією про урон
+            // Kуля має скрипт ScriptedBullet з інформацією про урон
             ScriptedBullet bullet = other.GetComponent<ScriptedBullet>();
             if (bullet != null)
             {

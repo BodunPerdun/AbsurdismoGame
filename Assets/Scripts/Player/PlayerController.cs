@@ -18,7 +18,7 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private float maxHealth = 100f;
     [SyncVar]
     private float currentHealth = 100f;
-    private bool isDead = false;
+    private bool isDead = false; // Cтан смерті
 
     [Header("Dash Settings")]
     public float dashSpeed = 25f;

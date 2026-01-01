@@ -10,6 +10,8 @@ public class WeaponsSwitching : NetworkBehaviour
     [Header("Combat")]
     public Camera playerCamera;
 
+    private PlayerController playerController;
+
     // [SyncVar] - головна зміна. 
     // Коли ця змінна змінюється на сервері, Mirror автоматично оновлює її у всіх клієнтів
     // і викликає метод 'OnWeaponChanged'.
@@ -24,6 +26,8 @@ public class WeaponsSwitching : NetworkBehaviour
         base.OnStartClient();
         // Примусово оновлюємо візуал при старті, щоб сховати зброю
         UpdateWeaponVisuals(activeWeaponIndex);
+
+        playerController = GetComponent<PlayerController>();
     }
 
     void Update()
@@ -32,7 +36,7 @@ public class WeaponsSwitching : NetworkBehaviour
         if (!isOwned) return;
 
         // Ми більше не викликаємо SelectWeapon напряму. Ми просимо сервер змінити зброю.
-        if (Input.GetKeyDown(KeyCode.Alpha1)) CmdSelectWeapon(-1);
+        if (Input.GetKeyDown(KeyCode.Alpha1) || playerController.GetPlayerIsDead()) CmdSelectWeapon(-1); // Режим "без зброї" навіть якщо мертвий
         if (Input.GetKeyDown(KeyCode.Alpha2)) CmdSelectWeapon(0);
         if (Input.GetKeyDown(KeyCode.Alpha3) && weapons.Length > 1) CmdSelectWeapon(1);
     }

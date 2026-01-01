@@ -57,25 +57,14 @@ public class ScriptedBullet : NetworkBehaviour
         transform.Translate(Vector3.forward * speed * Time.deltaTime);
     }
 
-    //[ServerCallback]
-    //void OnTriggerEnter(Collider other)
-    //{
-    //    // Логіка влучання (як ми писали раніше)
-    //    if (other.CompareTag("Enemy"))
-    //    {
-    //        // Нанести урон...
-    //        EnemyBase enemy = other.GetComponent<EnemyBase>();
-    //        if (enemy != null) enemy.TakeDamage(damage);
 
-    //        // Повернути в пул замість Destroy
-    //        ReturnToPool();
-    //    }
-    //    else if (!other.CompareTag("Player") && !other.CompareTag("Bullet")) // Щоб не влучати в себе
-    //    {
-    //        // Влучив у стіну
-    //        ReturnToPool();
-    //    }
-    //}
+    // Обробка зіткнень, щоб куля не летіла крізь об'єкти
+    [ServerCallback]
+    void OnTriggerEnter(Collider other)
+    {
+        // Повернути в пул замість Destroy
+        ReturnToPool();
+    }
 
     [ServerCallback]
     public void ReturnToPool()
