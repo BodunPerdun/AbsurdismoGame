@@ -1730,7 +1730,7 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  lootPrefab: {fileID: 8381736439752429403, guid: 4844040a363eb864b8eb5bbb94f47170, type: 3}
+  lootPrefab: {fileID: 7383039247665302864, guid: f9ead75377bf7174e8ee1f045b7f2342, type: 3}
   poolSize: 20
 --- !u!1001 &1566127625
 PrefabInstance:
