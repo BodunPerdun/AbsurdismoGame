@@ -15,7 +15,6 @@ public class LootPickup : NetworkBehaviour
             if (player != null)
             {
                 player.AddCoins(coinsAmount);
-                
                 LootPool.Instance.ReturnLoot(gameObject);
             }
         }
@@ -25,5 +24,5 @@ public class LootPickup : NetworkBehaviour
     public void SetValue(float amount)
     {
         coinsAmount = amount;
-    }
+    } 
 }

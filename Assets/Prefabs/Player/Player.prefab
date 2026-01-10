@@ -7018,8 +7018,9 @@ MonoBehaviour:
   backwardOffset: 0
   switchCameraTag: SwitchCamera
   _checkBaseCamera: {fileID: 0}
-  audioSource: {fileID: 9183152824288691751}
+  lootPickupSound: {fileID: 8300000, guid: 73fe08d976d650143acff2f1a206914b, type: 3}
   dashSound: {fileID: 8300000, guid: 98407eb4d2a19b640b452b24969e7d61, type: 3}
+  audioSource: {fileID: 9183152824288691751}
 --- !u!114 &2194773136957415918
 MonoBehaviour:
   m_ObjectHideFlags: 0

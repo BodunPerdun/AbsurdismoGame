@@ -38,12 +38,15 @@ public class PlayerController : NetworkBehaviour
     public string switchCameraTag = "SwitchCamera"; // Тег другої камери (додайте цей тег в Unity)
     [SerializeField] private CinemachineCamera _checkBaseCamera; // Можна залишити пустим, знайде 
 
+    [Header("Audion Effects")]
+    public AudioClip lootPickupSound;
+    public AudioClip dashSound;
+    public AudioSource audioSource;
+
     private PlayerControls controls;
 
     private bool isPlayerCamera = true; // true = Main, false = Second
 
-    public AudioSource audioSource;
-    public AudioClip dashSound;
 
     // ================
     [SyncVar]
@@ -387,5 +390,22 @@ public class PlayerController : NetworkBehaviour
     {
         coins += amount;
         Debug.Log($"Гравець отримав {amount} монет. Баланс: {coins}");
+
+        TargetPlaySound();
+
     }
+
+    [TargetRpc]
+    private void TargetPlaySound()
+    {
+        if (audioSource != null && lootPickupSound != null)
+        {
+
+            audioSource.pitch = Random.Range(0.9f, 1.1f);
+            float randomVolume = Random.Range(0.8f, 1.0f);
+
+            audioSource.PlayOneShot(lootPickupSound, randomVolume);
+        }
+    }
+
 }
