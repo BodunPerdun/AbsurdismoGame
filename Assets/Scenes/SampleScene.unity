@@ -382,7 +382,7 @@ MonoBehaviour:
   - {fileID: 5338132823101386166, guid: 0a960e93d4ec57e4b9a10f65735766d6, type: 3}
   - {fileID: 7009841015172631010, guid: 4afb25d0c05667b4586133cbd8c68210, type: 3}
   - {fileID: 4570007014696999347, guid: 57be1e4f9117eed4abfca1fd42235253, type: 3}
-  - {fileID: 8381736439752429403, guid: 4844040a363eb864b8eb5bbb94f47170, type: 3}
+  - {fileID: 4763468727449527496, guid: d6970fd2f67bf5d40832a702799445ec, type: 3}
   exceptionsDisconnect: 1
   snapshotSettings:
     bufferTimeMultiplier: 2
@@ -1730,7 +1730,7 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  lootPrefab: {fileID: 7383039247665302864, guid: f9ead75377bf7174e8ee1f045b7f2342, type: 3}
+  lootPrefab: {fileID: 4763468727449527496, guid: d6970fd2f67bf5d40832a702799445ec, type: 3}
   poolSize: 20
 --- !u!1001 &1566127625
 PrefabInstance:
