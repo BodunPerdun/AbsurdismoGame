@@ -3,122 +3,130 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
-using UnityEngine.UI;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq; 
 
 [System.Serializable]
 public struct SymbolChance
 {
     public string name;
     public int symbolIndex;
-    [Range(0, 100)]
-    public float chance;
+    [Range(0, 100)] public float chance;
 }
 
 public class CasinoManager : MonoBehaviour
 {
-    [Header("Компоненты")]
+    [Header("Ссылки")]
     public SlotReel[] reels; 
     public Button spinButton;
-    public Animator machineAnimator; // Ссылка на аниматор корпуса
+    public Animator machineAnimator;
+    public GameObject hintUI; // UI текст "Нажми F"
 
-    [Header("Звуки автомата")]
+    [Header("Звуки")]
     public AudioSource machineAudio; 
     public AudioClip startSound;     
     public AudioClip winSound;       
 
-    [Header("Настройка шансов (%)")]
+    [Header("Шансы")]
     public List<SymbolChance> symbolChances = new List<SymbolChance>();
 
     private int[] results = new int[3];
     private int completedReels = 0;
+    private bool isPlayerInside = false;
+    private bool isSpinning = false;
 
     void Start()
     {
         if (spinButton != null) spinButton.onClick.AddListener(StartSpinning);
-        if (machineAudio == null) machineAudio = GetComponent<AudioSource>();
-        if (machineAnimator == null) machineAnimator = GetComponent<Animator>();
+        if (hintUI != null) hintUI.SetActive(false);
     }
 
-    void StartSpinning()
+    void Update()
     {
-        // 1. ЗАПУСКАЕМ АНИМАЦИЮ СТАРТА
-        if (machineAnimator != null)
+        // Проверка нажатия F
+        if (isPlayerInside && !isSpinning && Input.GetKeyDown(KeyCode.F))
         {
-            machineAnimator.SetTrigger("StartSpin");
+            StartSpinning();
         }
+    }
 
-        // 2. ЗВУК СТАРТА
-        if (machineAudio != null && startSound != null)
-            machineAudio.PlayOneShot(startSound);
+    // --- ТРИГГЕРЫ ---
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            isPlayerInside = true;
+            if (hintUI != null && !isSpinning) hintUI.SetActive(true);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            isPlayerInside = false;
+            if (hintUI != null) hintUI.SetActive(false);
+        }
+    }
+
+    // --- ИГРОВАЯ ЛОГИКА ---
+    public void StartSpinning()
+    {
+        if (isSpinning) return;
+
+        isSpinning = true;
+        if (hintUI != null) hintUI.SetActive(false);
+        if (spinButton != null) spinButton.interactable = false;
+
+        if (machineAnimator != null) machineAnimator.SetTrigger("StartSpin");
+        if (machineAudio != null && startSound != null) machineAudio.PlayOneShot(startSound);
 
         StartCoroutine(SpinFlow());
     }
 
     IEnumerator SpinFlow()
     {
-        spinButton.interactable = false;
         completedReels = 0;
-
-        yield return new WaitForSeconds(0.2f); 
+        yield return new WaitForSeconds(0.1f);
 
         for (int i = 0; i < reels.Length; i++)
         {
-            int targetSymbol = GetRandomSymbol();
-            int reelIndex = i;
+            int target = GetRandomSymbol();
+            int index = i;
 
-            StartCoroutine(reels[i].Spin(2.5f + i * 0.5f, targetSymbol, (res) => {
-                results[reelIndex] = res;
+            StartCoroutine(reels[i].Spin(2.0f + i * 0.4f, target, (res) => {
+                results[index] = res;
                 completedReels++;
             }));
-
-            yield return new WaitForSeconds(0.3f);
+            yield return new WaitForSeconds(0.2f);
         }
 
         yield return new WaitUntil(() => completedReels == reels.Length);
+        
         CheckResult();
-    }
-
-    void CheckResult()
-    {
-        spinButton.interactable = true;
-
-        // Проверка на три шестерки (индекс 4) или любой другой джекпот
-        if (results[0] == results[1] && results[1] == results[2])
-        {
-            // ЗАПУСКАЕМ АНИМАЦИЮ ВЫИГРЫША
-            if (machineAnimator != null)
-            {
-                machineAnimator.SetTrigger("WinJackpot");
-            }
-
-            if (machineAudio != null && winSound != null)
-                machineAudio.PlayOneShot(winSound);
-
-            if (results[0] == 4) TriggerDevilEvent();
-        }
+        
+        isSpinning = false;
+        if (isPlayerInside && hintUI != null) hintUI.SetActive(true);
+        if (spinButton != null) spinButton.interactable = true;
     }
 
     int GetRandomSymbol()
     {
-        float totalWeight = symbolChances.Sum(s => s.chance);
-        float randomValue = Random.Range(0, totalWeight);
-        float currentWeight = 0;
-
-        foreach (var symbol in symbolChances)
+        float total = symbolChances.Sum(s => s.chance);
+        float rand = Random.Range(0, total);
+        float current = 0;
+        foreach (var s in symbolChances)
         {
-            currentWeight += symbol.chance;
-            if (randomValue <= currentWeight) return symbol.symbolIndex;
+            current += s.chance;
+            if (rand <= current) return s.symbolIndex;
         }
         return 0;
     }
 
-    void TriggerDevilEvent()
+    void CheckResult()
     {
-        Debug.Log("666: АДСКИЙ ДЖЕКПОТ!");
-        RenderSettings.ambientLight = Color.red;
+        if (results[0] == results[1] && results[1] == results[2])
+        {
+            if (machineAnimator != null) machineAnimator.SetTrigger("WinJackpot");
+            if (machineAudio != null && winSound != null) machineAudio.PlayOneShot(winSound);
+        }
     }
 }
