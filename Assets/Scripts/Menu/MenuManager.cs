@@ -5,33 +5,50 @@ using DG.Tweening;
 
 public class MenuManager : MonoBehaviour
 {
-    [Header("Ссылки")]
+    [Header("Система")]
     public CustomizationManager cust;
     public CinemachineBrain brain;
     public CinemachineCamera mainCam, secondCam, loudautCam;
 
-    [Header("UI & Animation")]
+    [Header("Интерфейс Меню")]
     public Animator doorAnim;
     public AudioSource audioSource;
     public Text titleText;
-    public CanvasGroup custPanel;
     public Button playButton;
+    public CanvasGroup customizationPanel;
 
-    [Header("Данные")]
+    [Header("Вкладки")]
+    public GameObject hatPanel; 
+    public GameObject beardPanel; 
+    public GameObject browPanel; 
+    public GameObject bodyPanel;
+    public Button tabHatBtn, tabBeardBtn, tabBrowBtn, tabBodyBtn;
+
+    [Header("Данные Палитры")]
     public GameObject[] hats, beards, brows;
-    public ColorPreset[] skinColors, hairColors;
+    public ColorPreset[] skinColors;
+    public ColorPreset[] commonHairColors; // Единая палитра для головы
+    public ColorPreset[] pantsColors;
 
     private bool isInLoadout;
     private bool isGameStarted = false;
 
     void Start()
     {
-        custPanel.gameObject.SetActive(false);
-        custPanel.alpha = 0;
-
-        cust.GenerateUI(hats, beards, brows, skinColors, hairColors, HandleItemSelection, HandleColorSelection);
+        customizationPanel.alpha = 0;
+        customizationPanel.gameObject.SetActive(false);
         
-        LoadCharacterPrefs(); // Загружаем то, что было сохранено
+        // Генерация UI
+        cust.GenerateUI(hats, beards, brows, skinColors, commonHairColors, pantsColors, HandleItemSelection, HandleColorSelection);
+
+        // Настройка вкладок
+        tabHatBtn.onClick.AddListener(() => SwitchTab("Hat"));
+        tabBeardBtn.onClick.AddListener(() => SwitchTab("Beard"));
+        tabBrowBtn.onClick.AddListener(() => SwitchTab("Brow"));
+        tabBodyBtn.onClick.AddListener(() => SwitchTab("Body"));
+
+        LoadCharacterPrefs();
+        SwitchTab("Hat");
     }
 
     public void PlayButtonHit()
@@ -39,14 +56,33 @@ public class MenuManager : MonoBehaviour
         if (isGameStarted) return;
         isGameStarted = true;
 
-        audioSource?.PlayDelayed(1f);
+        // --- МУЗЫКА ---
+        if (audioSource != null) audioSource.PlayDelayed(0.5f);
+
+        // --- АНИМАЦИЯ UI ---
+        playButton.interactable = false;
+        titleText?.DOFade(0, 0.6f).OnComplete(() => titleText.gameObject.SetActive(false));
+        playButton.image.DOFade(0, 0.6f);
+        playButton.GetComponentInChildren<Text>()?.DOFade(0, 0.6f).OnComplete(() => playButton.gameObject.SetActive(false));
+
         doorAnim?.SetTrigger("isStarted");
-        if (playButton != null) playButton.interactable = false;
-
+        
         brain.DefaultBlend.Time = 6f;
-        titleText?.DOFade(0, 0.8f).OnComplete(() => titleText.gameObject.SetActive(false));
+        SetCameras(0, 10, 0); 
+    }
 
-        SetCameras(0, 10, 0);
+    private void SwitchTab(string tag)
+    {
+        hatPanel.SetActive(tag == "Hat"); 
+        beardPanel.SetActive(tag == "Beard");
+        browPanel.SetActive(tag == "Brow"); 
+        bodyPanel.SetActive(tag == "Body");
+
+        // Подсветка кнопок
+        tabHatBtn.image.color = tag == "Hat" ? Color.white : new Color(0.6f, 0.6f, 0.6f);
+        tabBeardBtn.image.color = tag == "Beard" ? Color.white : new Color(0.6f, 0.6f, 0.6f);
+        tabBrowBtn.image.color = tag == "Brow" ? Color.white : new Color(0.6f, 0.6f, 0.6f);
+        tabBodyBtn.image.color = tag == "Body" ? Color.white : new Color(0.6f, 0.6f, 0.6f);
     }
 
     public void GoToLoadout()
@@ -56,74 +92,66 @@ public class MenuManager : MonoBehaviour
         isInLoadout = true;
         DOVirtual.DelayedCall(2f, () => {
             if (isInLoadout) {
-                custPanel.gameObject.SetActive(true);
-                custPanel.DOFade(1, 0.5f);
+                customizationPanel.gameObject.SetActive(true);
+                customizationPanel.DOFade(1, 0.5f);
             }
         });
     }
 
     public void BackToSecondCam()
     {
-        custPanel.DOFade(0, 0.3f).OnComplete(() => custPanel.gameObject.SetActive(false));
+        customizationPanel.DOFade(0, 0.3f).OnComplete(() => customizationPanel.gameObject.SetActive(false));
         SetCameras(0, 10, 0);
         isInLoadout = false;
     }
 
     private void HandleItemSelection(string type, int index)
     {
-        if (type == "Hat") ToggleItems(hats, index);
-        if (type == "Beard") ToggleItems(beards, index);
-        if (type == "Brow") ToggleItems(brows, index);
-
+        GameObject[] arr = type switch { "Hat" => hats, "Beard" => beards, "Brow" => brows, _ => null };
+        if (arr != null) for (int i = 0; i < arr.Length; i++) if (arr[i]) arr[i].SetActive(i == index);
         PlayerPrefs.SetInt("Selected" + type, index);
-        PlayerPrefs.Save();
     }
 
-    private void HandleColorSelection(Color c, bool isSkin)
+    private void HandleColorSelection(Color c, string type)
     {
-        string key = isSkin ? "SkinColor" : "HairColor";
-        PlayerPrefs.SetString(key, "#" + ColorUtility.ToHtmlStringRGBA(c));
+        PlayerPrefs.SetString(type + "Color", "#" + ColorUtility.ToHtmlStringRGBA(c));
+        ApplyColorByType(type, c);
+    }
+
+    private void ApplyColorByType(string type, Color c)
+    {
+        if (type == "Skin") cust.ApplyColor(cust.bodyRenderer, c);
+        if (type == "Pants") cust.ApplyColor(cust.pantsRenderer, c);
         
-        if (isSkin) cust.ApplyColor(cust.bodyRenderer, c);
-        else {
-            foreach (var b in beards) cust.ApplyColor(b?.GetComponent<Renderer>(), c);
-            foreach (var br in brows) cust.ApplyColor(br?.GetComponent<Renderer>(), c);
-        }
-        PlayerPrefs.Save();
+        // Красим через поиск во всех дочерних рендерерах
+        if (type == "HatColor") foreach (var h in hats) cust.ApplyToAllRenderers(h, c);
+        if (type == "BeardColor") foreach (var b in beards) cust.ApplyToAllRenderers(b, c);
+        if (type == "BrowColor") foreach (var br in brows) cust.ApplyToAllRenderers(br, c);
     }
 
     private void LoadCharacterPrefs()
     {
-        int h = PlayerPrefs.GetInt("SelectedHat", -1);
-        int b = PlayerPrefs.GetInt("SelectedBeard", -1);
-        int br = PlayerPrefs.GetInt("SelectedBrow", -1);
-  
-        
-     
-
-        HandleItemSelection("Hat", h);
-        cust.HighlightButtonByIndex("Hat", h);
-
-        HandleItemSelection("Beard", b);
-        cust.HighlightButtonByIndex("Beard", b);
-
-        HandleItemSelection("Brow", br);
-        cust.HighlightButtonByIndex("Brow", br);
-
-       
-    }
-
-    private void ToggleItems(GameObject[] arr, int idx)
-    {
-        for (int i = 0; i < arr.Length; i++) {
-            if (arr[i] != null) arr[i].SetActive(i == idx);
+        string[] cats = { "Hat", "Beard", "Brow" };
+        foreach (string cat in cats) {
+            int val = PlayerPrefs.GetInt("Selected" + cat, -1);
+            HandleItemSelection(cat, val);
+            cust.HighlightButtonByIndex(cat, val);
         }
+        LoadColor("Skin", Color.white);
+        LoadColor("Pants", Color.gray);
+        LoadColor("HatColor", Color.white); // Белый по умолчанию для текстурных шляп
+        LoadColor("BeardColor", Color.black);
+        LoadColor("BrowColor", Color.black);
     }
 
-    private void SetCameras(int m, int s, int l)
+    private void LoadColor(string type, Color defaultCol)
     {
-        mainCam.Priority = m; secondCam.Priority = s; loudautCam.Priority = l;
+        if (PlayerPrefs.HasKey(type + "Color") && ColorUtility.TryParseHtmlString(PlayerPrefs.GetString(type + "Color"), out Color savedCol))
+            ApplyColorByType(type, savedCol);
+        else ApplyColorByType(type, defaultCol);
     }
+
+    private void SetCameras(int m, int s, int l) { mainCam.Priority = m; secondCam.Priority = s; loudautCam.Priority = l; }
 
     void Update() { if (isInLoadout && Input.GetKeyDown(KeyCode.Escape)) BackToSecondCam(); }
 }
