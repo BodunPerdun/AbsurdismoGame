@@ -3525,7 +3525,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &969545311
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4544,6 +4544,66 @@ Transform:
   - {fileID: 854985214}
   m_Father: {fileID: 786519892}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1177948087
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1177948088}
+  - component: {fileID: 1177948089}
+  m_Layer: 5
+  m_Name: PantsColor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1177948088
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1177948087}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1511910531}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 180.00003, y: -356.13}
+  m_SizeDelta: {x: 130, y: 130}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1177948089
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1177948087}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GridLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_StartCorner: 0
+  m_StartAxis: 0
+  m_CellSize: {x: 40, y: 40}
+  m_Spacing: {x: 5, y: 5}
+  m_Constraint: 1
+  m_ConstraintCount: 4
 --- !u!1 &1193123632
 GameObject:
   m_ObjectHideFlags: 0
@@ -5630,10 +5690,10 @@ MonoBehaviour:
   titleText: {fileID: 328280289}
   playButton: {fileID: 1293611982}
   customizationPanel: {fileID: 969545315}
-  hatTabGroup: {fileID: 280264089}
-  beardTabGroup: {fileID: 655314172}
-  browTabGroup: {fileID: 473823809}
-  bodyTabGroup: {fileID: 108042139}
+  hatPanel: {fileID: 280264089}
+  beardPanel: {fileID: 655314172}
+  browPanel: {fileID: 473823809}
+  bodyPanel: {fileID: 108042139}
   tabHatBtn: {fileID: 1420995242}
   tabBeardBtn: {fileID: 832295507}
   tabBrowBtn: {fileID: 1266290372}
@@ -5657,13 +5717,19 @@ MonoBehaviour:
     colorValue: {r: 0.9568628, g: 0.6431373, b: 0.3764706, a: 1}
   - colorName: Sugar
     colorValue: {r: 0.9803922, g: 0.9411765, b: 0.9019608, a: 1}
-  hairColors:
-  - colorName: Red
-    colorValue: {r: 1, g: 0, b: 0, a: 1}
-  - colorName: Zelenski
-    colorValue: {r: 0.1254902, g: 1, b: 0, a: 1}
-  - colorName: Nigger
+  commonHairColors:
+  - colorName: 
     colorValue: {r: 0, g: 0, b: 0, a: 1}
+  - colorName: 
+    colorValue: {r: 1, g: 1, b: 1, a: 1}
+  - colorName: 
+    colorValue: {r: 1, g: 0, b: 0.037718773, a: 1}
+  - colorName: 
+    colorValue: {r: 0.5368553, g: 0.50377357, b: 1, a: 1}
+  - colorName: 
+    colorValue: {r: 0, g: 1, b: 0.012801886, a: 1}
+  - colorName: 
+    colorValue: {r: 1, g: 0.95694935, b: 0, a: 1}
   pantsColors:
   - colorName: Dark
     colorValue: {r: 0.06415099, g: 0.058946285, b: 0.058946285, a: 0}
@@ -5673,6 +5739,8 @@ MonoBehaviour:
     colorValue: {r: 0.12428224, g: 1, b: 0, a: 0}
   - colorName: AmericaFan
     colorValue: {r: 1, g: 0.0409944, b: 0, a: 0}
+  - colorName: NavyBlue
+    colorValue: {r: 0.05653, g: 0, b: 1, a: 0}
 --- !u!4 &1368653926
 Transform:
   m_ObjectHideFlags: 0
@@ -5823,7 +5891,7 @@ MonoBehaviour:
   hatColorContainer: {fileID: 791777486}
   beardColorContainer: {fileID: 671500847}
   browColorContainer: {fileID: 107949952}
-  pantsColorContainer: {fileID: 791777486}
+  pantsColorContainer: {fileID: 1177948088}
   bodyRenderer: {fileID: 617700004}
   pantsRenderer: {fileID: 1341294098}
 --- !u!1 &1420995238
@@ -6478,6 +6546,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1437539311}
+  - {fileID: 1177948088}
   m_Father: {fileID: 108042140}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
