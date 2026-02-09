@@ -7,40 +7,42 @@ public class SlotReel : MonoBehaviour
     
     [Header("Звуки")]
     [SerializeField] private AudioSource audioSource; 
-    [SerializeField] private AudioClip tickSound;     
+    [SerializeField] private AudioClip spinLoopSound; 
+    [SerializeField] private AudioClip stopClickSound;
 
     [Header("Настройки")]
-    [SerializeField] private float maxPitch = 1.4f;   
-    [SerializeField] private float minPitch = 0.85f;   
     [SerializeField] private float maxVolume = 0.8f; 
+    [SerializeField] private float basePitch = 1.0f; 
 
     private Quaternion initialLocalRot;
-    private Transform myTransform; // Кэшируем трансформ
-    private float lastTickAngle = 0;
+    private Transform myTransform;
 
     void Awake()
     {
-        // Кэшируем всё заранее
         myTransform = transform;
         initialLocalRot = myTransform.localRotation;
+        
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
+        
+        // Настройки для предотвращения задержек
+        audioSource.playOnAwake = false;
+        audioSource.priority = 0; // Высокий приоритет
+        audioSource.spatialBlend = 0; // 2D звук (чтобы точно слышать)
     }
 
     public IEnumerator Spin(float duration, int finalSymbol, System.Action<int> onComplete)
     {
         float elapsed = 0;
         float totalRotation = (360f * 5f) + (finalSymbol * STEP_ANGLE);
-        lastTickAngle = 0;
+        bool clickPlayed = false;
 
-        // Кэшируем локальные переменные для цикла, чтобы не лезть в переменные класса
-        var source = audioSource;
-        var hasSource = source != null;
-
-        if (hasSource) 
+        if (audioSource != null && spinLoopSound != null)
         {
-            source.volume = 0; 
-            source.pitch = maxPitch; 
-            source.Play();
+            audioSource.clip = spinLoopSound;
+            audioSource.loop = true;
+            audioSource.pitch = basePitch;
+            audioSource.volume = 0;
+            audioSource.Play();
         }
 
         while (elapsed < duration)
@@ -48,41 +50,48 @@ public class SlotReel : MonoBehaviour
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
             
-            // Используем t * t * (3f - 2f * t) для более легкого сглаживания (SmoothStep)
-            // или оставляем Pow, если нужно очень мягко
+            // Математика вращения
             float curve = 1f - Mathf.Pow(1f - t, 4f); 
             float currentAngle = curve * totalRotation;
+            myTransform.localRotation = initialLocalRot * Quaternion.AngleAxis(currentAngle, Vector3.right);
 
-            if (hasSource)
+            if (audioSource != null)
             {
-                source.volume = maxVolume * Mathf.Clamp01(t * 8f) * Mathf.Clamp01((1f - t) * 4f);
-                source.pitch = Mathf.Lerp(maxPitch, minPitch, t);
-            }
-
-            if (currentAngle - lastTickAngle >= STEP_ANGLE)
-            {
-                if (t < 0.95f) 
+                // Если почти конец (96%), подготавливаем почву для щелчка
+                if (t > 0.80f && !clickPlayed)
                 {
-                    if (hasSource && tickSound) source.PlayOneShot(tickSound, 0.3f);
-                    lastTickAngle = currentAngle;
+                    PlayFinalClick();
+                    clickPlayed = true;
+                }
+
+                if (!clickPlayed)
+                {
+                    // Управление громкостью основного гула
+                    float fadeIn = Mathf.Clamp01(t * 10f);
+                    float fadeOut = Mathf.Clamp01((1f - t) * 5f);
+                    audioSource.volume = maxVolume * fadeIn * fadeOut;
                 }
             }
-
-            // AngleAxis быстрее, чем Euler
-            myTransform.localRotation = initialLocalRot * Quaternion.AngleAxis(currentAngle, Vector3.right);
-            
             yield return null;
         }
 
-        // Финальная фиксация
-        myTransform.localRotation = initialLocalRot * Quaternion.AngleAxis(finalSymbol * STEP_ANGLE, Vector3.right);
-        
-        if (hasSource) 
-        {
-            source.Stop();
-            if (tickSound) source.PlayOneShot(tickSound, 0.7f);
-        }
+        // --- ГАРАНТИРОВАННАЯ ОСТАНОВКА ---
+        if (!clickPlayed) PlayFinalClick();
 
+        myTransform.localRotation = initialLocalRot * Quaternion.AngleAxis(finalSymbol * STEP_ANGLE, Vector3.right);
         onComplete?.Invoke(finalSymbol);
+    }
+
+    private void PlayFinalClick()
+    {
+        if (audioSource != null && stopClickSound != null)
+        {
+            audioSource.Stop(); // Полностью стопаем цикл кручения
+            audioSource.loop = false;
+            audioSource.pitch = 1.0f;
+            audioSource.volume = maxVolume;
+            audioSource.PlayOneShot(stopClickSound); 
+            // Debug.Log("Щелчок воспроизведен на: " + gameObject.name);
+        }
     }
 }
