@@ -211,7 +211,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8e5a0cf31e8c394094db0e27d18bc0b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SlotReel
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 3278523769044221497}
   spinLoopSound: {fileID: 0}
   stopClickSound: {fileID: 0}
   maxVolume: 1
@@ -657,7 +657,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8e5a0cf31e8c394094db0e27d18bc0b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SlotReel
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 3278523769044221497}
   spinLoopSound: {fileID: 0}
   stopClickSound: {fileID: 0}
   maxVolume: 1
