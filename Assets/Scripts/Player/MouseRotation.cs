@@ -21,16 +21,16 @@ public class MouseRotation : NetworkBehaviour
     {
         if (!isOwned) return;
 
-        if (playerRoot == null){playerRoot = transform.root;}
+        if (playerRoot == null) { playerRoot = transform.root; }
 
-        if (playerCamera == null){playerCamera = Camera.main;}
+        if (playerCamera == null) { playerCamera = Camera.main; }
 
         // Знаходимо скрипт перемикання зброї на головному об'єкті гравця
         weaponsSwitching = playerRoot.GetComponent<WeaponsSwitching>();
         if (weaponsSwitching == null) { Debug.LogError("Не знайдено скрипт WeaponsSwitching на об'єкті гравця!"); }
     }
 
-   
+
     void LateUpdate()
     {
         if (!isOwned) return;
@@ -43,11 +43,11 @@ public class MouseRotation : NetworkBehaviour
 
         // --- ЛОГІКА ПОВОРОТУ ---
         Vector3 targetPoint = GetMousePoint();
-        
+
         // РАСЧЕТ НАПРАВЛЕНИЯ ОТ ТОРСА (transform.position)
         Vector3 direction = targetPoint - transform.position;
         direction.y = 0; // Игнорируем высоту
-        
+
         if (direction.sqrMagnitude > 0.01f)
         {
             // Обертаємо Spine (верхню частину)
@@ -55,7 +55,7 @@ public class MouseRotation : NetworkBehaviour
             // Обертаємо ноги, якщо скрутилися занадто сильно
             CheckAndForceBodyRotation(direction);
         }
-        
+
         HandleShooting(direction);
     }
 
@@ -73,12 +73,12 @@ public class MouseRotation : NetworkBehaviour
     {
         Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
         // ПЛОСКОСТЬ ЗЕМЛИ: Привязана к Y-координате ТОРСА
-        Plane groundPlane = new Plane(Vector3.up, transform.position); 
+        Plane groundPlane = new Plane(Vector3.up, transform.position);
 
         Vector3 planeCenter = transform.position;
         planeCenter.y = 0.31f;
-        
-        
+
+
         float hitDist;
         if (groundPlane.Raycast(ray, out hitDist))
         {
@@ -86,17 +86,17 @@ public class MouseRotation : NetworkBehaviour
         }
         return transform.position;
     }
-    
+
     // функция для оберту верху тіла(торсу)
-    void RotateUpBody(Vector3 direction){
+    void RotateUpBody(Vector3 direction) {
         Quaternion diseredRotation = Quaternion.LookRotation(direction);
         transform.rotation = diseredRotation;
     }
-   
+
     // функция перевірки та обертання ніг
     private void CheckAndForceBodyRotation(Vector3 aimDirection)
     {
-        Vector3 playerForward = playerRoot.forward; 
+        Vector3 playerForward = playerRoot.forward;
         float angleOffset = Vector3.SignedAngle(playerForward, aimDirection, Vector3.up);
         if (Mathf.Abs(angleOffset) > max_angle)
         {

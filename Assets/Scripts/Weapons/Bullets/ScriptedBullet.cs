@@ -4,18 +4,20 @@ using Mirror;
 public class ScriptedBullet : NetworkBehaviour
 {
     [HideInInspector]
-    private GameObject owner; // Тепер ми будемо це заповнювати
+    private GameObject owner;
 
+    // 1. [SyncVar] - Швидкість передається з сервера клієнтам при спавні
+    [SyncVar]
     private float speed;
+
     private float damage;
-    private Vector3 direction; // Вектор польоту
+    private Vector3 direction;
 
     [Header("Life Time")]
     public float lifeTime = 5f;
 
     public override void OnStartServer()
     {
-        // Запускаємо таймер життя
         Invoke(nameof(ReturnToPool), lifeTime);
     }
 
@@ -37,23 +39,22 @@ public class ScriptedBullet : NetworkBehaviour
         }
     }
 
-    // --- ГОЛОВНЕ ВИПРАВЛЕННЯ ---
-    // Додаємо метод для встановлення власника
     public void SetOwner(GameObject newOwner)
     {
         this.owner = newOwner;
-        // Debug.Log($"Куля: Власник встановлений - {newOwner.name}");
     }
-    // ---------------------------
 
     public void SetDirection(Vector3 dir)
     {
+        Debug.Log("Роблю постріл!");
         this.direction = dir;
-        // Одразу повертаємо кулю в бік польоту, щоб Translate працював коректно
+        // Обертання кулі синхронізується автоматично через NetworkTransform (якщо він є),
+        // або через початковий спавн (rotation у GetBullet).
         if (dir != Vector3.zero)
             transform.forward = dir;
     }
 
+    // Цей метод викликається на сервері перед Spawn
     public void SetSpeed(float spd) { this.speed = spd; }
     public void SetDamage(float dmg) { this.damage = dmg; }
 
@@ -62,25 +63,28 @@ public class ScriptedBullet : NetworkBehaviour
     public float GetSpeed() { return this.speed; }
     public GameObject GetOwner() { return this.owner; }
 
-    [ServerCallback]
+    // 2. ПРИБРАНО [ServerCallback]
+    // Тепер Update працює і на Клієнті, і на Сервері.
+    // Клієнт рухає кулю сам, використовуючи синхронізовану швидкість (SyncVar).
     void Update()
     {
-        // Рухаємось вперед відносно повороту кулі
+        // Рухаємось вперед
+        // Важливо: Оскільки куля повертається через transform.forward у SetDirection,
+        // клієнт знатиме напрямок завдяки початковому обертанню префабу при спавні.
         transform.Translate(Vector3.forward * speed * Time.deltaTime);
     }
 
+    // Зіткнення обробляємо ТІЛЬКИ на сервері
     [ServerCallback]
     void OnTriggerEnter(Collider other)
     {
-        // 1. Ігноруємо самого стрілка (щоб не вбити себе на бігу)
         if (owner != null && other.gameObject == owner) return;
+        if (other.CompareTag("Enemy")) return; // Ворог сам обробить влучання
 
-        // 2. Ігноруємо ворога ТУТ, тому що логіка знищення кулі вже прописана в EnemyBase
-        // Якщо ми повернемо кулю в пул тут, скрипт EnemyBase може не встигнути прочитати GetOwner()
-        if (other.CompareTag("Enemy")) return;
+        // Ігноруємо тригери (наприклад, зони видимості ворогів), реагуємо тільки на тверді тіла
+        if (other.isTrigger) return;
 
-        // 3. Якщо влучили у стіну чи перешкоду - зникаємо
-        if (!other.CompareTag("Player") && !other.CompareTag("Bullet")) // Додайте інші теги, які треба ігнорувати
+        if (!other.CompareTag("Player") && !other.CompareTag("Bullet"))
         {
             ReturnToPool();
         }
@@ -98,5 +102,6 @@ public class ScriptedBullet : NetworkBehaviour
             NetworkServer.UnSpawn(gameObject);
             gameObject.SetActive(false);
         }
+
     }
 }

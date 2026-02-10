@@ -7,14 +7,6 @@ public class WeaponsSwitching : NetworkBehaviour
     public BaseWeapon[] weapons;
     public Animator animator;
 
-    [Header("Combat")]
-    public Camera playerCamera;
-
-    private PlayerController playerController;
-
-    // [SyncVar] - головна зміна. 
-    // Коли ця змінна змінюється на сервері, Mirror автоматично оновлює її у всіх клієнтів
-    // і викликає метод 'OnWeaponChanged'.
     [SyncVar(hook = nameof(OnWeaponChanged))]
     private int activeWeaponIndex = -1;
 
@@ -24,64 +16,88 @@ public class WeaponsSwitching : NetworkBehaviour
     public override void OnStartClient()
     {
         base.OnStartClient();
-        // Примусово оновлюємо візуал при старті, щоб сховати зброю
         UpdateWeaponVisuals(activeWeaponIndex);
-
-        playerController = GetComponent<PlayerController>();
     }
 
     void Update()
     {
-        // Обробка натискань тільки для власника
         if (!isOwned) return;
 
-        // Ми більше не викликаємо SelectWeapon напряму. Ми просимо сервер змінити зброю.
-        if (Input.GetKeyDown(KeyCode.Alpha1) || playerController.GetPlayerIsDead()) CmdSelectWeapon(-1); // Режим "без зброї" навіть якщо мертвий
+        if (Input.GetKeyDown(KeyCode.Alpha1)) CmdSelectWeapon(-1);
         if (Input.GetKeyDown(KeyCode.Alpha2)) CmdSelectWeapon(0);
         if (Input.GetKeyDown(KeyCode.Alpha3) && weapons.Length > 1) CmdSelectWeapon(1);
     }
 
-    // --- ПУБЛІЧНИЙ МЕТОД ДЛЯ СТРІЛЬБИ (викликається з MouseRotation) ---
+    // --- ВХІД (Клієнт) ---
     public void Fire(Vector3 direction)
     {
-        // Тільки якщо ми маємо зброю, надсилаємо запит на постріл
-        if (activeWeaponIndex != -1)
+        BaseWeapon weapon = CurrentWeapon;
+        if (weapon == null)
         {
+            return;
+        }
+
+        // 1. Клієнтська перевірка + Миттєві ефекти (Тряска/Звук)
+        if (weapon.TryShootClient())
+        {
+            // ЛОГ 3: Клієнт дозволив постріл
+            Debug.Log("[3] WeaponsSwitching: TryShootClient OK. Відправляємо CmdFire (activeWeaponIndex = " + activeWeaponIndex + ")");
             CmdFire(direction);
         }
     }
 
-    // --- КОМАНДИ (Виконуються на Сервері) ---
+    // --- СЕРВЕР (Логіка) ---
+    [Command]
+    void CmdFire(Vector3 direction)
+    {
+        Debug.Log("[4] CmdFire: Команда прийшла на СЕРВЕР"); // ЛОГ 4
+
+        BaseWeapon weapon = CurrentWeapon;
+        if (weapon != null)
+        {
+            // 1. Просимо пістолет створити кулю (вона поки існує тільки на сервері приховано)
+            // Передаємо "gameObject" (себе) як власника
+            GameObject bulletObj = weapon.PerformShot(direction, this.gameObject);
+
+            // 2. Якщо куля успішно створена — спавнимо її в мережу
+            if (bulletObj != null)
+            {
+                Debug.Log("[5] CmdFire: Куля створена, робимо NetworkServer.Spawn"); // ЛОГ 5
+
+                NetworkServer.Spawn(bulletObj);
+
+                // 3. Звук для інших
+                RpcPlaySoundForOthers(activeWeaponIndex);
+            }
+        }
+        else
+        {
+            Debug.LogError("[Error] CmdFire: На сервері зброя NULL");
+        }
+    }
+
+    // --- КЛІЄНТИ (Звук для інших) ---
+    [ClientRpc(includeOwner = false)] // includeOwner = false, бо стрілок вже почув звук у TryShootClient
+    void RpcPlaySoundForOthers(int weaponIndex)
+    {
+        Debug.Log("[6] RpcPlaySoundForOthers: Відтворюємо звук для інших клієнтів (activeWeaponIndex = " + weaponIndex + ")"); // ЛОГ 
+        if (weaponIndex >= 0 && weaponIndex < weapons.Length)
+        {
+            if (weapons[weaponIndex] != null)
+                weapons[weaponIndex].PlayShootSound();
+        }
+    }
 
     [Command]
     void CmdSelectWeapon(int index)
     {
-        // Захист: якщо ми вже тримаємо цю зброю, не треба спамити мережу оновленнями
         if (activeWeaponIndex == index) return;
-
-        // Перевірка валідності індексу
         if (index >= -1 && index < weapons.Length)
         {
-            // Змінюємо змінну. 
-            // Оскільки це SyncVar, Mirror автоматично викличе OnWeaponChanged на всіх клієнтах!
             activeWeaponIndex = index;
         }
     }
 
-    [Command]
-    void CmdFire(Vector3 direction)
-    {
-        BaseWeapon weapon = CurrentWeapon;
-        // Тепер сервер знає правильний індекс, тому weapon не буде null
-        if (weapon != null)
-        {
-            weapon.TryShoot(direction);
-        }
-    }
-
-    // --- ВІЗУАЛІЗАЦІЯ (Hook) ---
-
-    // Цей метод викликається автоматично Mirror, коли змінюється activeWeaponIndex
     void OnWeaponChanged(int oldIndex, int newIndex)
     {
         UpdateWeaponVisuals(newIndex);
@@ -89,7 +105,6 @@ public class WeaponsSwitching : NetworkBehaviour
 
     void UpdateWeaponVisuals(int index)
     {
-        // 1. Вимикаємо ВСЮ зброю
         for (int i = 0; i < weapons.Length; i++)
         {
             if (weapons[i] != null)
@@ -99,22 +114,18 @@ public class WeaponsSwitching : NetworkBehaviour
             }
         }
 
-        // 2. Якщо режим "без зброї"
         if (index == -1)
         {
             if (animator != null) animator.SetInteger("WeaponType", -1);
             return;
         }
 
-        // 3. Вмикаємо нову зброю
-        if (index >= 0 && index < weapons.Length)
+        if (index >= 0 && index < weapons.Length && weapons[index] != null)
         {
-            if (weapons[index] != null)
-            {
-                weapons[index].gameObject.SetActive(true);
-                weapons[index].SetSelectStatus(true);
-            }
+            weapons[index].gameObject.SetActive(true);
+            weapons[index].SetSelectStatus(true);
             if (animator != null) animator.SetInteger("WeaponType", index);
+
         }
     }
 

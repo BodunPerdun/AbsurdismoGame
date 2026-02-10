@@ -1,14 +1,13 @@
 using UnityEngine;
-using Mirror;
 
 public abstract class BaseWeapon : MonoBehaviour
 {
     [Header("Type")]
-    public WeaponsTypes.WeaponType weaponType; // Тип зброї для аніматора
+    public WeaponsTypes.WeaponType weaponType;
 
     [Header("Stats")]
     public float damage = 10f;
-    public float fireRate = 10f;
+    public float fireRate = 5f;
     public float bulletSpeed = 20f;
     public GameObject bulletPrefab;
     public Transform firePoint;
@@ -16,55 +15,57 @@ public abstract class BaseWeapon : MonoBehaviour
     [Header("Effects")]
     public AudioClip shootSound;
     public AudioSource audioSource;
+    public float cameraShakeForce = 1.0f;
 
-    [Tooltip("Min/Max Pitch")]
-    public float minPitch = 0.95f;
-    public float maxPitch = 1.05f;
+    // --- ВИПРАВЛЕННЯ: Два різні таймери ---
+    protected float nextFireTimeClient = 0f; // Таймер для візуалу (клієнт)
+    protected float nextFireTimeServer = 0f; // Таймер для логіки (сервер)
 
-    [Tooltip("Min/Max Volume")]
-    public float minVolume = 0.9f;
-    public float maxVolume = 1.0f;
-
-    protected float nextTimetoFire = 0f;
-
-    private bool isSelected = false;
-
-    public virtual void TryShoot(Vector3 direction)
+    // --- ЛОГІКА КЛІЄНТА (Миттєвий візуал) ---
+    public bool TryShootClient()
     {
-        if (Time.time >= nextTimetoFire && this.CheckSelectedStatus())
+        // Перевіряємо клієнтський таймер
+        if (Time.time >= nextFireTimeClient)
         {
-            nextTimetoFire = Time.time + 1f / fireRate;
+            // Оновлюємо ТІЛЬКИ клієнтський таймер
+            nextFireTimeClient = Time.time + 1f / fireRate;
 
-            // Ефекти (тряска камери) - це спрацює тільки локально, якщо викликати на клієнті,
-            // але оскільки ми стріляємо через сервер, тряску треба робити окремо (Rpc), 
-            // або ігнорувати, якщо сервер - це не гравець.
-            // Для простоти поки залишимо так, але пам'ятай про це.
-
-            // Якщо є CameraManager, викликаємо тряску
+            // 1. Тряска камери
             if (CameraManager.Instance != null)
-                CameraManager.Instance.CameraShake(1.3f);
+                CameraManager.Instance.CameraShake(cameraShakeForce);
 
-            PerformShot(direction.normalized);
+            // 2. Звук
             PlayShootSound();
-        }else { return; }
+
+            return true;
+        }
+        return false;
     }
 
-    // Абстрактний метод: кожна зброя сама вирішує, як саме стріляти (одна куля, черга, дроб)
-    protected abstract void PerformShot(Vector3 direction);
+    public abstract GameObject PerformShot(Vector3 direction, GameObject owner);
 
-    // Базовий метод спавну кулі, приймає напрямок
-    // Базовий метод спавну кулі
-    protected void SpawnBullet(Vector3 direction)
+    // --- ЛОГІКА СЕРВЕРА ---
+    protected GameObject SpawnBullet(Vector3 direction, GameObject owner)
     {
-        if (bulletPrefab == null || firePoint == null) return;
-        if (BulletPool.Instance == null)
+        // Перевіряємо СЕРВЕРНИЙ таймер
+        // Це важливо: навіть у Host-режимі це буде окрема змінна від клієнтської,
+        // або ж, якщо це одна змінна, ми її ще не чіпали в TryShootClient.
+        // Але краще мати дві змінні, щоб уникнути конфліктів.
+        if (Time.time < nextFireTimeServer) return null;
+
+        // Оновлюємо серверний таймер
+        nextFireTimeServer = Time.time + 1f / fireRate;
+
+        if (bulletPrefab == null || firePoint == null || BulletPool.Instance == null)
         {
-            Debug.LogError("BulletPool не знайдено!");
-            return;
+            Debug.LogError("[BaseWeapon] Помилка: Немає префабу, FirePoint або Пулу!");
+            return null;
         }
 
+        // 1. Створюємо фізичний об'єкт
         GameObject bulletGO = BulletPool.Instance.GetBullet(firePoint.position, Quaternion.LookRotation(direction));
 
+        // 2. Налаштовуємо скрипт кулі
         ScriptedBullet bulletScript = bulletGO.GetComponent<ScriptedBullet>();
         if (bulletScript != null)
         {
@@ -72,46 +73,20 @@ public abstract class BaseWeapon : MonoBehaviour
             bulletScript.SetDirection(direction);
             bulletScript.SetSpeed(bulletSpeed);
             bulletScript.SetDamage(damage);
-
-            // --- ДОДАНО ---
-            // Шукаємо гравця, який тримає цю зброю.
-            // GetComponentInParent<NetworkIdentity>() знайде головний об'єкт гравця,
-            // навіть якщо зброя знаходиться глибоко в ієрархії (наприклад: Player -> Hands -> WeaponHolder -> Gun)
-            NetworkIdentity playerIdentity = GetComponentInParent<NetworkIdentity>();
-
-            if (playerIdentity != null)
-            {
-                bulletScript.SetOwner(playerIdentity.gameObject);
-            }
-            else
-            {
-                // Якщо раптом зброя не прикріплена до гравця з NetworkIdentity
-                Debug.LogWarning("Зброя не знайшла власника (NetworkIdentity)!");
-            }
-            // --------------
+            bulletScript.SetOwner(owner);
         }
 
-        NetworkServer.Spawn(bulletGO);
+        return bulletGO;
     }
 
-    protected void PlayShootSound()
+    public void PlayShootSound()
     {
         if (audioSource != null && shootSound != null)
         {
-            audioSource.clip = shootSound;
-            audioSource.pitch = Random.Range(minPitch, maxPitch);
-            audioSource.volume = Random.Range(minVolume, maxVolume);
-            audioSource.PlayOneShot(shootSound); // PlayOneShot краще для стрільби, щоб звуки не переривали один одного
+            audioSource.pitch = Random.Range(0.9f, 1.1f);
+            audioSource.PlayOneShot(shootSound);
         }
     }
 
-    public void SetSelectStatus(bool isSelected)
-    {
-        this.isSelected = isSelected;
-    }
-
-    protected bool CheckSelectedStatus()
-    {
-        return isSelected;
-    }
+    public void SetSelectStatus(bool isSelected) { gameObject.SetActive(isSelected); }
 }

@@ -6,8 +6,8 @@ public class WeaponsTypes : MonoBehaviour
     public enum WeaponType
     {
         None,
-        Melee,
         Pistol,
+        Melee,
         Rifle,
         Shotgun,
         Special
