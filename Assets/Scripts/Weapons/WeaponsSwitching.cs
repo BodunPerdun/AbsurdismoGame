@@ -56,6 +56,9 @@ public class WeaponsSwitching : NetworkBehaviour
     [Command]
     void CmdSelectWeapon(int index)
     {
+        // Захист: якщо ми вже тримаємо цю зброю, не треба спамити мережу оновленнями
+        if (activeWeaponIndex == index) return;
+
         // Перевірка валідності індексу
         if (index >= -1 && index < weapons.Length)
         {

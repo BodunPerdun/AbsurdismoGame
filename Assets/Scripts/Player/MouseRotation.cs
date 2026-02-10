@@ -107,15 +107,15 @@ public class MouseRotation : NetworkBehaviour
 
     void HandleShooting(Vector3 direction)
     {
-        BaseWeapon activeWeapon = weaponsSwitching.GetActiveWeapon();
+        // Перевіряємо наявність компонента
+        if (weaponsSwitching == null) return;
 
-        if (activeWeapon == null || weaponsSwitching == null) return;
-
-        // Для одиночної черги пострілів
-        if (Input.GetButtonDown("Fire1") && activeWeapon != null)
+        // GetButton дозволяє затиснути кнопку для автомату. 
+        // Якщо зброя напівавтоматична - це регулюється FireRate у самій зброї.
+        if (Input.GetButton("Fire1"))
         {
+            // Ми викликаємо метод на WeaponsSwitching, який відправить сигнал на сервер
             weaponsSwitching.Fire(direction);
         }
-       
     }
 }

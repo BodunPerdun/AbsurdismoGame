@@ -6929,6 +6929,9 @@ GameObject:
   - component: {fileID: 8072595125615334399}
   - component: {fileID: 8864957674925234594}
   - component: {fileID: 8699999639166061231}
+  - component: {fileID: 8891580644844996630}
+  - component: {fileID: 448267318711777871}
+  - component: {fileID: 4659997395122004640}
   - component: {fileID: 2194773136957415918}
   - component: {fileID: 7963719550035569580}
   - component: {fileID: 345852658289310469}
@@ -6937,6 +6940,7 @@ GameObject:
   - component: {fileID: 2870169402616662231}
   - component: {fileID: 6819626534663095255}
   - component: {fileID: 7594484208061695893}
+  - component: {fileID: 3070198504874024208}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -6998,7 +7002,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8884562835580537157}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28c62d465117e394c8c105e6d92d5d8e, type: 3}
   m_Name: 
@@ -7021,6 +7025,69 @@ MonoBehaviour:
   lootPickupSound: {fileID: 8300000, guid: 73fe08d976d650143acff2f1a206914b, type: 3}
   dashSound: {fileID: 8300000, guid: 98407eb4d2a19b640b452b24969e7d61, type: 3}
   audioSource: {fileID: 9183152824288691751}
+--- !u!114 &8891580644844996630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8884562835580537157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62adf67f781046d4e81a5482e227206d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  moveSpeed: 20
+  rotationSpeed: 10
+  mainCameraTag: FollowCamera
+  forwardOffset: 5
+  backwardOffset: 0
+  switchCameraTag: SwitchCamera
+  _checkBaseCamera: {fileID: 0}
+  dashSpeed: 25
+  dashDuration: 0.2
+  trail1: {fileID: 4274883615190098577}
+  trail2: {fileID: 5715311591567898199}
+  dashSound: {fileID: 8300000, guid: 98407eb4d2a19b640b452b24969e7d61, type: 3}
+  audioSource: {fileID: 9183152824288691751}
+--- !u!114 &448267318711777871
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8884562835580537157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be146310dab78664a9f947d67de8c6fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  maxHealth: 100
+  ch: {fileID: 8864957674925234594}
+  renderers: []
+--- !u!114 &4659997395122004640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8884562835580537157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e6dc7cb848c96942b20e1c7d9c7667c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerWallet
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  audioSource: {fileID: 9183152824288691751}
+  coinSound: {fileID: 8300000, guid: 73fe08d976d650143acff2f1a206914b, type: 3}
 --- !u!114 &2194773136957415918
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7270,6 +7337,24 @@ MonoBehaviour:
   rotationSensitivity: 0.01
   positionPrecision: 0.01
   scalePrecision: 0.01
+--- !u!114 &3070198504874024208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8884562835580537157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be146310dab78664a9f947d67de8c6fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  maxHealth: 100
+  ch: {fileID: 0}
+  renderers: []
 --- !u!1 &8935498514350556784
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,6 +10,11 @@ public class LootPool : NetworkBehaviour
     public GameObject lootPrefab;
     public int poolSize = 20;
 
+    [Header("Audion Effects")]
+    public AudioClip lootPickupSound;
+    public AudioSource audioSource;
+
+
     private Queue<GameObject> pool = new Queue<GameObject>();
     
     void Awake()
@@ -69,6 +74,21 @@ public class LootPool : NetworkBehaviour
         loot.SetActive(false);
         NetworkServer.UnSpawn(loot); // Відключаємо від мережі
         pool.Enqueue(loot);
+
+        TargetPlaySound();
+    }
+
+    [Server]
+    private void TargetPlaySound()
+    {
+        if (audioSource != null && lootPickupSound != null)
+        {
+
+            audioSource.pitch = Random.Range(0.9f, 1.1f);
+            float randomVolume = Random.Range(0.8f, 1.0f);
+
+            audioSource.PlayOneShot(lootPickupSound, randomVolume);
+        }
     }
 
 }

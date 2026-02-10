@@ -275,6 +275,7 @@ MonoBehaviour:
   machineAudio: {fileID: 3278523769044221497}
   startSound: {fileID: 8300000, guid: dabc5daff65d9964d87db1ee1e7103fb, type: 3}
   winSound: {fileID: 8300000, guid: 975a95495cbe81048a548dc73776fd21, type: 3}
+  spinCost: 50
   symbolChances:
   - name: 666
     symbolIndex: 0

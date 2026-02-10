@@ -26,6 +26,9 @@ public class CasinoManager : NetworkBehaviour
     public AudioClip startSound;
     public AudioClip winSound;
 
+    [Header("Налаштування")]
+    public int spinCost = 10; // Ціна прокрутки
+
     [Header("Шанси")]
     public List<SymbolChance> symbolChances = new List<SymbolChance>();
 
@@ -99,26 +102,35 @@ public class CasinoManager : NetworkBehaviour
 
     // requiresAuthority = false дозволяє викликати це будь-кому
     [Command(requiresAuthority = false)]
-    private void CmdSpin()
+    private void CmdSpin(NetworkConnectionToClient sender = null)
     {
-        if (isSpinning) return;
+        // 1. Отримуємо об'єкт гравця, який надіслав команду
+        // sender.identity - це NetworkIdentity гравця, який натиснув кнопку
+        GameObject playerObject = sender.identity.gameObject;
+        PlayerWallet playerWallet = playerObject.GetComponent<PlayerWallet>();
 
-        isSpinning = true;
+        if (playerWallet == null) return;
 
-        // 1. Генеруємо результати на сервері (захист від чітів)
-        int[] results = new int[reels.Length];
-        for (int i = 0; i < reels.Length; i++)
+        // 2. Пробуємо зняти гроші
+        // Цей метод ми щойно написали в PlayerController
+        if (playerWallet.TrySpendCoins(spinCost))
         {
-            results[i] = GetRandomSymbol();
+            // --- Гроші знято, крутимо барабани ---
+            if (isSpinning) return;
+            isSpinning = true;
+
+            int[] results = new int[reels.Length];
+            for (int i = 0; i < reels.Length; i++) results[i] = GetRandomSymbol();
+
+            RpcStartSpin(results);
+            StartCoroutine(ServerResetSpinState(5.0f));
         }
-
-        // 2. Розсилаємо всім клієнтам команду почати анімацію
-        RpcStartSpin(results);
-
-        // 3. Сервер повинен розблокувати автомат через певний час
-        // Час = затримка початку + (к-сть барабанів * затримка) + час кручення останнього + запас
-        float maxDuration = 0.1f + (reels.Length * 0.2f) + (2.0f + (reels.Length - 1) * 0.4f) + 1.0f;
-        StartCoroutine(ServerResetSpinState(maxDuration));
+        else
+        {
+            // --- Грошей немає ---
+            // Можна відправити TargetRpc назад гравцю, щоб показати напис "No Money"
+            Debug.Log("У гравця немає грошей на гру!");
+        }
     }
 
     // --- ЛОГІКА КЛІЄНТІВ (Візуал) ---

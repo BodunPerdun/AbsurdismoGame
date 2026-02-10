@@ -53,6 +53,7 @@ public abstract class BaseWeapon : MonoBehaviour
     protected abstract void PerformShot(Vector3 direction);
 
     // Базовий метод спавну кулі, приймає напрямок
+    // Базовий метод спавну кулі
     protected void SpawnBullet(Vector3 direction)
     {
         if (bulletPrefab == null || firePoint == null) return;
@@ -71,9 +72,25 @@ public abstract class BaseWeapon : MonoBehaviour
             bulletScript.SetDirection(direction);
             bulletScript.SetSpeed(bulletSpeed);
             bulletScript.SetDamage(damage);
+
+            // --- ДОДАНО ---
+            // Шукаємо гравця, який тримає цю зброю.
+            // GetComponentInParent<NetworkIdentity>() знайде головний об'єкт гравця,
+            // навіть якщо зброя знаходиться глибоко в ієрархії (наприклад: Player -> Hands -> WeaponHolder -> Gun)
+            NetworkIdentity playerIdentity = GetComponentInParent<NetworkIdentity>();
+
+            if (playerIdentity != null)
+            {
+                bulletScript.SetOwner(playerIdentity.gameObject);
+            }
+            else
+            {
+                // Якщо раптом зброя не прикріплена до гравця з NetworkIdentity
+                Debug.LogWarning("Зброя не знайшла власника (NetworkIdentity)!");
+            }
+            // --------------
         }
 
-        // NetworkServer.Spawn працює глобально, тому тут все ок
         NetworkServer.Spawn(bulletGO);
     }
 

@@ -385,16 +385,6 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-    [Server]
-    public void AddCoins(float amount)
-    {
-        coins += amount;
-        Debug.Log($"Гравець отримав {amount} монет. Баланс: {coins}");
-
-        TargetPlaySound();
-
-    }
-
     [TargetRpc]
     private void TargetPlaySound()
     {
@@ -406,6 +396,43 @@ public class PlayerController : NetworkBehaviour
 
             audioSource.PlayOneShot(lootPickupSound, randomVolume);
         }
+    }
+
+    // --- ФІНАНСОВА СИСТЕМА ---
+
+    [Server]
+    public void AddCoins(float amount)
+    {
+        coins += amount;
+        Debug.Log($"Гравець отримав {amount} монет. Баланс: {coins}");
+
+        TargetPlaySound();
+
+    }
+
+    [Server]
+    public bool TrySpendCoins(float amount)
+    {
+        if (coins >= amount)
+        {
+            coins -= amount;
+            Debug.Log($"[Server] Гравець витратив {amount}. Залишок: {coins}");
+
+            // Опціонально: оновити UI або програти звук успішної покупки
+            // TargetPlaySound(); // Можна додати окремий звук витрати
+            return true; // Операція успішна
+        }
+        else
+        {
+            Debug.Log($"[Server] Недостатньо грошей! Треба: {amount}, Є: {coins}");
+            return false; // Операція провалена
+        }
+    }
+
+    // Простий геттер для читання балансу (можна викликати і на клієнті, бо SyncVar синхронізує значення)
+    public float GetCoins()
+    {
+        return coins;
     }
 
 }

@@ -1,5 +1,6 @@
-using UnityEngine;
 using Mirror;
+using UnityEngine;
+using UnityEngine.Audio;
 
 public class LootPickup : NetworkBehaviour
 {
@@ -11,12 +12,8 @@ public class LootPickup : NetworkBehaviour
     {
         if(other.CompareTag("Player"))
         {
-            PlayerController player = other.GetComponent<PlayerController>();
-            if (player != null)
-            {
-                player.AddCoins(coinsAmount);
-                LootPool.Instance.ReturnLoot(gameObject);
-            }
+            GlobalBank.Instance.AddMoney(coinsAmount);
+            LootPool.Instance.ReturnLoot(gameObject);
         }
     }
 

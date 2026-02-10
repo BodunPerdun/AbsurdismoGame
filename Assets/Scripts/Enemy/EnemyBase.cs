@@ -10,7 +10,7 @@ public class EnemyBase : NetworkBehaviour // 2. Успадковуємо від 
     private float damageInflicted = 10f;
 
     [Header("Reward Settings")]
-    [SerializeField] private float totalReward = 100f; // Загальна нагорода
+    [SerializeField] private int totalReward = 100; // Загальна нагорода
     [Range(0, 1)]
     [SerializeField] private float directDepositPercent = 0.3f; // 30% на рахунок, 70% на землю
 
@@ -52,12 +52,12 @@ public class EnemyBase : NetworkBehaviour // 2. Успадковуємо від 
     [Server] // Обробка смерті тільки на сервері
     public void Die(GameObject attacker)
     {
-        float directMoney = totalReward * directDepositPercent; // Гроші на рахунок
-        float lootMoney = totalReward - directMoney; // Гроші, що випадають
+        int directMoney = (int)(totalReward * directDepositPercent); // Гроші на рахунок
+        int lootMoney = totalReward - directMoney; // Гроші, що випадають
 
         if (attacker != null)
         {
-            PlayerController player = attacker.GetComponent<PlayerController>();
+            PlayerWallet player = attacker.GetComponent<PlayerWallet>();
             if (player != null)
             {
                 player.AddCoins(directMoney);
