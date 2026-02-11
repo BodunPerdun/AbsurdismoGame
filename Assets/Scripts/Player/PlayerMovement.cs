@@ -1,32 +1,28 @@
 ﻿using Mirror;
-using Unity.Cinemachine;
-using UnityEngine;
 using System.Collections;
-using UnityEngine.Audio;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
-// Обов'язково вимагаємо наявність Health, бо ми перевіряємо if(health.IsDead)
 [RequireComponent(typeof(CharacterController), typeof(PlayerHealth))]
 public class PlayerMovement : NetworkBehaviour
 {
     private CharacterController ch;
-    private PlayerHealth health; // Посилання на наш новий скрипт
-    private PlayerControls controls;
+    private PlayerHealth health;
     private Animator animator;
+
+    // Прибрали MouseRotation, бо він для top-down
+    public PlayerControls Controls { get; private set; }
 
     [Header("Stats")]
     public float moveSpeed = 5f;
-    public float rotationSpeed = 10f;
+    public float jumpHeight = 1.5f; // Висота стрибка
+    public float gravityMultiplier = 1.0f; // Щоб налаштувати "важкість" падіння
 
-    [Header("Main Camera Settings")]
-    public string mainCameraTag = "FollowCamera"; // Тег основної камери
-    private CinemachineCamera _targetCamera;
-    public float forwardOffset = 5f;
-    public float backwardOffset = 0f;
-    private CinemachineRotationComposer _rotationComposer;
-
-    [Header("Second Camera Settings")]
-    public string switchCameraTag = "SwitchCamera"; // Тег другої камери (додайте цей тег в Unity)
-    [SerializeField] private CinemachineCamera _checkBaseCamera; // Можна залишити пустим, знайде 
+    [Header("First Person Settings")]
+    public float mouseSensitivity = 2f;
+    public Transform cameraRoot;
+    private float xRotation = 0f;
+    public GameObject playerCameraObject;
 
     [Header("Dash Settings")]
     public float dashSpeed = 25f;
@@ -35,136 +31,186 @@ public class PlayerMovement : NetworkBehaviour
     public TrailRenderer trail1;
     public TrailRenderer trail2;
 
-    [Header("Audion Effects")]
+    [Header("Audio")]
     public AudioClip dashSound;
     public AudioSource audioSource;
 
-    // ... змінні для камер та інше ...
+    // Змінна для вертикальної швидкості (стрибки/гравітація)
+    private float _verticalVelocity;
 
     void Awake()
     {
         ch = GetComponent<CharacterController>();
         health = GetComponent<PlayerHealth>();
         animator = GetComponent<Animator>();
-        controls = new PlayerControls();
+        Controls = new PlayerControls();
     }
 
-    // Викликається тільки для локального гравця
     public override void OnStartLocalPlayer()
     {
-        // 1. Налаштування ОСНОВНОЇ камери
-        if (_targetCamera == null)
+        // 1. Вмикаємо камеру ТІЛЬКИ якщо це наш гравець
+        if (playerCameraObject != null)
         {
-            GameObject mainCamObj = GameObject.FindGameObjectWithTag(mainCameraTag);
-            if (mainCamObj != null)
-            {
-                _targetCamera = mainCamObj.GetComponent<CinemachineCamera>();
-                if (_targetCamera != null)
-                {
-                    _targetCamera.Follow = transform;
-                    _targetCamera.LookAt = transform;
-                    _rotationComposer = _targetCamera.GetComponent<CinemachineRotationComposer>();
-
-                    // Активуємо основну камеру при старті
-                    CameraManager.Instance.SwitchToCamera(_targetCamera);
-                }
-            }
-            else
-            {
-                Debug.LogError($"Основну камеру з тегом '{mainCameraTag}' не знайдено!");
-            }
+            playerCameraObject.SetActive(true);
         }
 
-        // 2. Налаштування ДРУГОЇ камери (пошук за тегом)
-        if (_checkBaseCamera == null)
+        // ... ваш старий код пошуку Cinemachine (якщо він ще потрібен) ...
+        // Хоча, якщо камера всередині префаба, то код з FindGameObjectWithTag вже не потрібен для цієї камери.
+
+        // Курсор
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    void Start()
+    {
+        // Для безпеки: якщо це НЕ мій гравець, вимикаємо камеру примусово
+        if (!isOwned && playerCameraObject != null)
         {
-            GameObject switchCamObj = GameObject.FindGameObjectWithTag(switchCameraTag);
-            if (switchCamObj != null)
-            {
-                _checkBaseCamera = switchCamObj.GetComponent<CinemachineCamera>();
-                // Опціонально: Якщо друга камера теж має слідкувати за гравцем, розкоментуйте:
-                // _checkBaseCamera.Follow = transform;
-                // _checkBaseCamera.LookAt = transform;
-            }
-            else
-            {
-                // Це не помилка, можливо другої камери просто немає на рівні
-                Debug.LogWarning($"Другу камеру з тегом '{switchCameraTag}' не знайдено.");
-            }
+            playerCameraObject.SetActive(false);
         }
     }
 
-    void OnEnable() => controls.Player.Enable();
-    void OnDisable() => controls.Player.Disable();
+    void OnEnable() => Controls.Player.Enable();
+    void OnDisable() => Controls.Player.Disable();
 
     void Update()
     {
-        // Якщо це не наш гравець або він мертвий - не рухаємось
         if (!isOwned || health.IsDead) return;
 
-        HandleInput();
+        HandleRotation();
+        HandleMovementAndJump();
+        HandleShooting();
     }
 
-    void HandleInput()
+    void HandleRotation()
     {
-        Vector2 input = controls.Player.Move.ReadValue<Vector2>();
-        Vector3 moveDir = new Vector3(input.x, 0, input.y).normalized;
+        Vector2 mouseDelta = Mouse.current.delta.ReadValue();
 
-        if (moveDir.magnitude >= 0.1f)
-        {
-            // Рух
-            ch.Move(moveDir * moveSpeed * Time.deltaTime);
+        float mouseX = mouseDelta.x * mouseSensitivity * Time.deltaTime * 5f;
+        float mouseY = mouseDelta.y * mouseSensitivity * Time.deltaTime * 5f;
 
-            // Поворот
-            Quaternion toRotation = Quaternion.LookRotation(moveDir, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, rotationSpeed * Time.deltaTime);
+        // Обертаємо тіло гравця по горизонталі
+        transform.Rotate(Vector3.up * mouseX);
 
-            animator.SetBool("isMoving", true);
-        }
-        else
-        {
-            animator.SetBool("isMoving", false);
-        }
+        // Обертаємо камеру по вертикалі
+        xRotation -= mouseY;
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-        bool isMoving = moveDir.sqrMagnitude > 0.01f;
-
-        if (isMoving)
-        {
-            // Перевірка на Dash (заміна Input.GetKeyDown(KeyCode.LeftShift))
-            if (controls.Player.Dash.WasPressedThisFrame()) Dash();
-
-            if (isDashing) return;
-        }
+        if (cameraRoot)
+            cameraRoot.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
     }
 
-    void Dash()
+    void HandleMovementAndJump()
     {
         if (isDashing) return;
-        Vector3 dashDirection = transform.forward;
-        if (audioSource && dashSound) audioSource.PlayOneShot(dashSound);
-        StartCoroutine(PerformDash(dashDirection));
+
+        // 1. Земля та гравітація
+        bool isGrounded = ch.isGrounded;
+
+        // Якщо ми на землі, скидаємо вертикальну швидкість (залишаємо маленький мінус, щоб "притискало")
+        if (isGrounded && _verticalVelocity < 0)
+        {
+            _verticalVelocity = -2f;
+        }
+
+        // 2. Отримання вводу руху
+        Vector2 input = Controls.Player.Move.ReadValue<Vector2>();
+
+        // Рух завжди відносно погляду (FPS)
+        Vector3 moveDir = transform.right * input.x + transform.forward * input.y;
+
+        // 3. Логіка стрибка
+        // Переконайтесь, що в Input System є Action "Jump" (Space)
+        if (Controls.Player.Jump.WasPressedThisFrame() && isGrounded)
+        {
+            // Формула фізичного стрибка: v = sqrt(h * -2 * g)
+            _verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * Physics.gravity.y * gravityMultiplier);
+        }
+
+        // 4. Застосування гравітації до вертикальної швидкості
+        _verticalVelocity += Physics.gravity.y * gravityMultiplier * Time.deltaTime;
+
+        // 5. Фінальне переміщення
+        // Горизонтальна швидкість + Вертикальна швидкість
+        Vector3 finalMove = moveDir * moveSpeed;
+        finalMove.y = _verticalVelocity;
+
+        ch.Move(finalMove * Time.deltaTime);
+
+        // Анімація
+        bool isMoving = input.sqrMagnitude > 0.01f;
+        animator.SetBool("isMoving", isMoving);
+
+        // Dash
+        if (Controls.Player.Dash.WasPressedThisFrame() && isMoving)
+        {
+            StartCoroutine(PerformDashLocally(moveDir.normalized)); // Деш туди, куди дивимось/йдемо
+            CmdDash();
+        }
     }
 
-    IEnumerator PerformDash(Vector3 direction)
+    void HandleShooting()
+    {
+        var weapons = GetComponent<WeaponsSwitching>();
+
+        if (weapons && Controls.Player.Fire.WasPressedThisFrame())
+        {
+            // Стріляємо рівно по центру екрана
+            Ray ray = new Ray(cameraRoot.position, cameraRoot.forward);
+            Vector3 targetPoint = ray.GetPoint(100f);
+
+            // Якщо у щось влучили променем - цілимось туди, якщо ні - просто вперед на 100м
+            if (Physics.Raycast(ray, out RaycastHit hit))
+                targetPoint = hit.point;
+
+            weapons.Fire(targetPoint - transform.position);
+        }
+    }
+
+    // --- DASH (Локальний) ---
+    IEnumerator PerformDashLocally(Vector3 dir)
     {
         isDashing = true;
         animator.SetBool("isDashing", true);
+        ToggleTrails(true);
+        if (audioSource && dashSound) audioSource.PlayOneShot(dashSound);
 
-        if (trail1) trail1.emitting = true;
-        if (trail2) trail2.emitting = true;
+        Vector3 dashDirection = dir;
+        // Якщо стоїмо на місці - деш вперед
+        if (dashDirection.magnitude < 0.1f) dashDirection = transform.forward;
 
         float startTime = Time.time;
         while (Time.time < startTime + dashDuration)
         {
             if (health.IsDead) break;
-
-            ch.Move(direction * moveSpeed * Time.deltaTime * 3);
+            // Під час деша ігноруємо гравітацію (або можна додати _verticalVelocity, якщо хочете падати в деші)
+            ch.Move(dashDirection * dashSpeed * Time.deltaTime);
             yield return null;
         }
 
-        isDashing = false;
-        if (trail1) trail1.emitting = false;
-        if (trail2) trail2.emitting = false;
+        ToggleTrails(false);
         animator.SetBool("isDashing", false);
+        isDashing = false;
+    }
+
+    // --- МЕРЕЖА ---
+    [Command] void CmdDash() { RpcDashEffects(); }
+    [ClientRpc] void RpcDashEffects() { if (!isOwned) StartCoroutine(ShowDashEffectsRoutine()); }
+
+    IEnumerator ShowDashEffectsRoutine()
+    {
+        animator.SetBool("isDashing", true);
+        if (audioSource && dashSound) audioSource.PlayOneShot(dashSound);
+        ToggleTrails(true);
+        yield return new WaitForSeconds(dashDuration);
+        ToggleTrails(false);
+        animator.SetBool("isDashing", false);
+    }
+
+    void ToggleTrails(bool state)
+    {
+        if (trail1) trail1.emitting = state;
+        if (trail2) trail2.emitting = state;
     }
 }

@@ -8,6 +8,8 @@ TagManager:
   - SwitchCamera
   - Enemy
   - Bullet
+  - FPSCamera
+  - CombatCamera
   layers:
   - Default
   - TransparentFX

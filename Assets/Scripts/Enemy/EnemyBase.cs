@@ -1,6 +1,10 @@
 using UnityEngine;
 using Mirror;
 
+/*
+ *Привіт, я хочу переробити логіку ворогів. Щоб можна було додати декілька префабів ворогів, та налаштовувати шанс спавну кожного з мобів.
+ */
+
 public class EnemyBase : NetworkBehaviour // 2. Успадковуємо від NetworkBehaviour
 {
     [Header("Health Settings")]
