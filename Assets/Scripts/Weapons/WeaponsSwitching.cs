@@ -1,5 +1,6 @@
-﻿using UnityEngine;
-using Mirror;
+﻿using Mirror;
+using Unity.Cinemachine;
+using UnityEngine;
 
 public class WeaponsSwitching : NetworkBehaviour
 {
@@ -40,8 +41,6 @@ public class WeaponsSwitching : NetworkBehaviour
         // 1. Клієнтська перевірка + Миттєві ефекти (Тряска/Звук)
         if (weapon.TryShootClient())
         {
-            // ЛОГ 3: Клієнт дозволив постріл
-            Debug.Log("[3] WeaponsSwitching: TryShootClient OK. Відправляємо CmdFire (activeWeaponIndex = " + activeWeaponIndex + ")");
             CmdFire(direction);
         }
     }
@@ -50,7 +49,6 @@ public class WeaponsSwitching : NetworkBehaviour
     [Command]
     void CmdFire(Vector3 direction)
     {
-        Debug.Log("[4] CmdFire: Команда прийшла на СЕРВЕР"); // ЛОГ 4
 
         BaseWeapon weapon = CurrentWeapon;
         if (weapon != null)
@@ -62,7 +60,6 @@ public class WeaponsSwitching : NetworkBehaviour
             // 2. Якщо куля успішно створена — спавнимо її в мережу
             if (bulletObj != null)
             {
-                Debug.Log("[5] CmdFire: Куля створена, робимо NetworkServer.Spawn"); // ЛОГ 5
 
                 NetworkServer.Spawn(bulletObj);
 
@@ -80,7 +77,6 @@ public class WeaponsSwitching : NetworkBehaviour
     [ClientRpc(includeOwner = false)] // includeOwner = false, бо стрілок вже почув звук у TryShootClient
     void RpcPlaySoundForOthers(int weaponIndex)
     {
-        Debug.Log("[6] RpcPlaySoundForOthers: Відтворюємо звук для інших клієнтів (activeWeaponIndex = " + weaponIndex + ")"); // ЛОГ 
         if (weaponIndex >= 0 && weaponIndex < weapons.Length)
         {
             if (weapons[weaponIndex] != null)

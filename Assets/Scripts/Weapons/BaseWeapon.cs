@@ -1,3 +1,4 @@
+using Unity.Cinemachine;
 using UnityEngine;
 
 public abstract class BaseWeapon : MonoBehaviour
@@ -15,11 +16,18 @@ public abstract class BaseWeapon : MonoBehaviour
     [Header("Effects")]
     public AudioClip shootSound;
     public AudioSource audioSource;
+    private CinemachineImpulseSource _impulseSource;
     public float cameraShakeForce = 1.0f;
+
 
     // --- ВИПРАВЛЕННЯ: Два різні таймери ---
     protected float nextFireTimeClient = 0f; // Таймер для візуалу (клієнт)
     protected float nextFireTimeServer = 0f; // Таймер для логіки (сервер)
+
+    protected virtual void Awake()
+    {
+        _impulseSource = GetComponent<CinemachineImpulseSource>();
+    }
 
     // --- ЛОГІКА КЛІЄНТА (Миттєвий візуал) ---
     public bool TryShootClient()
@@ -30,10 +38,10 @@ public abstract class BaseWeapon : MonoBehaviour
             // Оновлюємо ТІЛЬКИ клієнтський таймер
             nextFireTimeClient = Time.time + 1f / fireRate;
 
-            // 1. Тряска камери
-            if (CameraManager.Instance != null)
-                CameraManager.Instance.CameraShake(cameraShakeForce);
-
+            if (_impulseSource != null)
+            {
+                _impulseSource.GenerateImpulse(cameraShakeForce);
+            }
             // 2. Звук
             PlayShootSound();
 

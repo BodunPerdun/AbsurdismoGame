@@ -8,7 +8,7 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
     private NavMeshAgent agent;
     private Transform targetTransform;
 
-    private PlayerController targetController; // Посилання на контролер гравця
+    private PlayerHealth targetHealsPlayerController; // Посилання на контролер гравця
 
     public NetworkAnimator networkAnimator;
 
@@ -54,13 +54,13 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
     void Update()
     {
         // 1. Якщо у нас є ціль, перевіряємо, чи вона не померла "щойно"
-        if (targetTransform != null && targetController != null)
+        if (targetTransform != null && targetHealsPlayerController != null)
         {
-            if (targetController.GetPlayerIsDead())
+            if (targetHealsPlayerController.IsDead)
             {
                 // Ціль померла під час погоні - забуваємо її
                 targetTransform = null;
-                targetController = null;
+                targetHealsPlayerController = null;
                 agent.isStopped = true;
             }
         }
@@ -102,13 +102,13 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
 
         float closestDistance = Mathf.Infinity;
         Transform potentialTarget = null;
-        PlayerController bestController = null;
+        PlayerHealth bestController = null;
 
         foreach (GameObject player in players)
         {
-            PlayerController pc = player.GetComponent<PlayerController>();
+            PlayerHealth pc = player.GetComponent<PlayerHealth>();
 
-            if (pc == null || pc.GetPlayerIsDead()) continue; // Пропускаємо мертвих гравців 
+            if (pc == null || pc.IsDead) continue; // Пропускаємо мертвих гравців 
 
             float d = Vector3.Distance(transform.position, player.transform.position);
 
@@ -123,7 +123,7 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
 
         // Призначаємо ціль
         targetTransform = potentialTarget;
-        targetController = bestController;
+        targetHealsPlayerController = bestController;
     }
 
     [Server]
@@ -153,7 +153,7 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
         if (Time.time >= lastAttackTime + attackInterval)
         {
             // Наносимо урон конкретному гравцю через збережене посилання
-            targetController.TakeDamage(damageAmount);
+            targetHealsPlayerController.TakeDamage(damageAmount);
 
             Debug.Log($"Enemy attacked player for {damageAmount} damage");
 

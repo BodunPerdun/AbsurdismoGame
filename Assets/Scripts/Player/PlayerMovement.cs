@@ -1,5 +1,6 @@
 ﻿using Mirror;
 using System.Collections;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -23,6 +24,7 @@ public class PlayerMovement : NetworkBehaviour
     public Transform cameraRoot;
     private float xRotation = 0f;
     public GameObject playerCameraObject;
+    public CinemachineCamera thirdPersonCamera;
 
     [Header("Dash Settings")]
     public float dashSpeed = 25f;
@@ -46,6 +48,28 @@ public class PlayerMovement : NetworkBehaviour
         Controls = new PlayerControls();
     }
 
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+
+        // Реєструємо себе в менеджері спостерігача (навіть якщо це чужий гравець)
+        if (SpectatorManager.Instance != null)
+        {
+            SpectatorManager.Instance.RegisterPlayersCamera(thirdPersonCamera);
+        }
+    }
+
+    public override void OnStopClient()
+    {
+        base.OnStopClient();
+
+        // Видаляємо себе при виході
+        if (SpectatorManager.Instance != null)
+        {
+            SpectatorManager.Instance.UnregisterPlayerCamera(thirdPersonCamera);
+        }
+    }
+
     public override void OnStartLocalPlayer()
     {
         // 1. Вмикаємо камеру ТІЛЬКИ якщо це наш гравець
@@ -54,12 +78,15 @@ public class PlayerMovement : NetworkBehaviour
             playerCameraObject.SetActive(true);
         }
 
-        // ... ваш старий код пошуку Cinemachine (якщо він ще потрібен) ...
-        // Хоча, якщо камера всередині префаба, то код з FindGameObjectWithTag вже не потрібен для цієї камери.
-
         // Курсор
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        // Реєструємося в менеджері
+        if (CameraManager.Instance != null && playerCameraObject != null)
+        {
+            CameraManager.Instance.RegisterCamera(playerCameraObject.GetComponent<CinemachineCamera>());
+        }
     }
 
     void Start()
@@ -213,4 +240,7 @@ public class PlayerMovement : NetworkBehaviour
         if (trail1) trail1.emitting = state;
         if (trail2) trail2.emitting = state;
     }
+
+    // --- Чисто для камера/спостерігача, щоб знати, що цей гравець помер ---
+    public CinemachineCamera GetPlayerCamera() { return thirdPersonCamera;}
 }
