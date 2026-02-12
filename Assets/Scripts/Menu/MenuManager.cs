@@ -12,7 +12,7 @@ public class MenuManager : MonoBehaviour
 
     [Header("Интерфейс Меню")]
     public Animator doorAnim;
-    public AudioSource audioSource;
+    public AudioSource musicSource; // Фоновая музыка
     public Text titleText;
     public Button playButton;
     public CanvasGroup customizationPanel;
@@ -24,10 +24,14 @@ public class MenuManager : MonoBehaviour
     public GameObject bodyPanel;
     public Button tabHatBtn, tabBeardBtn, tabBrowBtn, tabBodyBtn;
 
+    [Header("Данные Предметов")]
+    public CustomizationManager.CustomizationItem[] hats;
+    public CustomizationManager.CustomizationItem[] beards;
+    public CustomizationManager.CustomizationItem[] brows;
+
     [Header("Данные Палитры")]
-    public GameObject[] hats, beards, brows;
     public ColorPreset[] skinColors;
-    public ColorPreset[] commonHairColors; // Единая палитра для головы
+    public ColorPreset[] commonHairColors;
     public ColorPreset[] pantsColors;
 
     private bool isInLoadout;
@@ -38,10 +42,8 @@ public class MenuManager : MonoBehaviour
         customizationPanel.alpha = 0;
         customizationPanel.gameObject.SetActive(false);
         
-        // Генерация UI
         cust.GenerateUI(hats, beards, brows, skinColors, commonHairColors, pantsColors, HandleItemSelection, HandleColorSelection);
 
-        // Настройка вкладок
         tabHatBtn.onClick.AddListener(() => SwitchTab("Hat"));
         tabBeardBtn.onClick.AddListener(() => SwitchTab("Beard"));
         tabBrowBtn.onClick.AddListener(() => SwitchTab("Brow"));
@@ -55,18 +57,14 @@ public class MenuManager : MonoBehaviour
     {
         if (isGameStarted) return;
         isGameStarted = true;
-
-        // --- МУЗЫКА ---
-        if (audioSource != null) audioSource.PlayDelayed(0.5f);
-
-        // --- АНИМАЦИЯ UI ---
+        if (musicSource != null) musicSource.PlayDelayed(0.5f);
+        
         playButton.interactable = false;
         titleText?.DOFade(0, 0.6f).OnComplete(() => titleText.gameObject.SetActive(false));
         playButton.image.DOFade(0, 0.6f);
         playButton.GetComponentInChildren<Text>()?.DOFade(0, 0.6f).OnComplete(() => playButton.gameObject.SetActive(false));
-
-        doorAnim?.SetTrigger("isStarted");
         
+        doorAnim?.SetTrigger("isStarted");
         brain.DefaultBlend.Time = 6f;
         SetCameras(0, 10, 0); 
     }
@@ -78,7 +76,7 @@ public class MenuManager : MonoBehaviour
         browPanel.SetActive(tag == "Brow"); 
         bodyPanel.SetActive(tag == "Body");
 
-        // Подсветка кнопок
+        // Подсветка активной вкладки
         tabHatBtn.image.color = tag == "Hat" ? Color.white : new Color(0.6f, 0.6f, 0.6f);
         tabBeardBtn.image.color = tag == "Beard" ? Color.white : new Color(0.6f, 0.6f, 0.6f);
         tabBrowBtn.image.color = tag == "Brow" ? Color.white : new Color(0.6f, 0.6f, 0.6f);
@@ -107,8 +105,14 @@ public class MenuManager : MonoBehaviour
 
     private void HandleItemSelection(string type, int index)
     {
-        GameObject[] arr = type switch { "Hat" => hats, "Beard" => beards, "Brow" => brows, _ => null };
-        if (arr != null) for (int i = 0; i < arr.Length; i++) if (arr[i]) arr[i].SetActive(i == index);
+        CustomizationManager.CustomizationItem[] arr = type switch { "Hat" => hats, "Beard" => beards, "Brow" => brows, _ => null };
+        if (arr != null) 
+        {
+            for (int i = 0; i < arr.Length; i++) 
+            {
+                if (arr[i].model != null) arr[i].model.SetActive(i == index);
+            }
+        }
         PlayerPrefs.SetInt("Selected" + type, index);
     }
 
@@ -123,10 +127,9 @@ public class MenuManager : MonoBehaviour
         if (type == "Skin") cust.ApplyColor(cust.bodyRenderer, c);
         if (type == "Pants") cust.ApplyColor(cust.pantsRenderer, c);
         
-        // Красим через поиск во всех дочерних рендерерах
-        if (type == "HatColor") foreach (var h in hats) cust.ApplyToAllRenderers(h, c);
-        if (type == "BeardColor") foreach (var b in beards) cust.ApplyToAllRenderers(b, c);
-        if (type == "BrowColor") foreach (var br in brows) cust.ApplyToAllRenderers(br, c);
+        if (type == "HatColor") foreach (var h in hats) cust.ApplyToAllRenderers(h.model, c);
+        if (type == "BeardColor") foreach (var b in beards) cust.ApplyToAllRenderers(b.model, c);
+        if (type == "BrowColor") foreach (var br in brows) cust.ApplyToAllRenderers(br.model, c);
     }
 
     private void LoadCharacterPrefs()
@@ -139,7 +142,7 @@ public class MenuManager : MonoBehaviour
         }
         LoadColor("Skin", Color.white);
         LoadColor("Pants", Color.gray);
-        LoadColor("HatColor", Color.white); // Белый по умолчанию для текстурных шляп
+        LoadColor("HatColor", Color.white);
         LoadColor("BeardColor", Color.black);
         LoadColor("BrowColor", Color.black);
     }
