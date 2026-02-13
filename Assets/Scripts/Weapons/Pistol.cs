@@ -1,11 +1,14 @@
-using System;
+п»їusing System;
 using UnityEngine;
 
 public class Pistol : BaseWeapon
 {
-    protected override void PerformShot(Vector3 direction)
+    public override GameObject PerformShot(Vector3 direction, GameObject owner)
     {
-        // Пістолет стріляє просто однією кулею прямо
-        SpawnBullet(direction);
+        
+        // РџС–СЃС‚РѕР»РµС‚ РїСЂРѕСЃС‚Рѕ РїРѕРІРµСЂС‚Р°С” РѕРґРЅСѓ СЃС‚РІРѕСЂРµРЅСѓ РєСѓР»СЋ
+        return SpawnBullet(direction, owner);
+
     }
+
 }
