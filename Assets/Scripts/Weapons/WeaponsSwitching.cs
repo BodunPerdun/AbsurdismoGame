@@ -1,75 +1,129 @@
-﻿using UnityEngine;
+﻿using Mirror;
+using Unity.Cinemachine;
+using UnityEngine;
 
-public class WeaponsSwitching : MonoBehaviour
+public class WeaponsSwitching : NetworkBehaviour
 {
     [Header("Налаштування")]
     public BaseWeapon[] weapons;
     public Animator animator;
 
-    // Початкове значення -1 означає "без зброї"
+    [SyncVar(hook = nameof(OnWeaponChanged))]
     private int activeWeaponIndex = -1;
 
-    // Безпечна перевірка: якщо індекс -1, повертаємо null
     private BaseWeapon CurrentWeapon =>
         (activeWeaponIndex >= 0 && activeWeaponIndex < weapons.Length) ? weapons[activeWeaponIndex] : null;
 
-    void Start()
+    public override void OnStartClient()
     {
-        // При старті: -1 (без зброї) або 0 (пістолет) — як ви захочете
-        SelectWeapon(-1);
+        base.OnStartClient();
+        UpdateWeaponVisuals(activeWeaponIndex);
     }
 
     void Update()
     {
-        // Клавіша 1 -> Сховати зброю (індекс -1)
-        if (Input.GetKeyDown(KeyCode.Alpha1)) SelectWeapon(-1);
+        if (!isOwned) return;
 
-        // Клавіша 2 -> Перша зброя в масиві (індекс 0)
-        if (Input.GetKeyDown(KeyCode.Alpha2)) SelectWeapon(0);
-
-        // Клавіша 3 -> Друга зброя в масиві (індекс 1)
-        if (Input.GetKeyDown(KeyCode.Alpha3) && weapons.Length > 1) SelectWeapon(1);
+        if (Input.GetKeyDown(KeyCode.Alpha1)) CmdSelectWeapon(-1);
+        if (Input.GetKeyDown(KeyCode.Alpha2)) CmdSelectWeapon(0);
+        if (Input.GetKeyDown(KeyCode.Alpha3) && weapons.Length > 1) CmdSelectWeapon(1);
     }
 
-    void SelectWeapon(int index)
+    // --- ВХІД (Клієнт) ---
+    public void Fire(Vector3 direction)
     {
-        // КРОК 1: Спочатку вимикаємо АБСОЛЮТНО ВСЮ зброю
+        BaseWeapon weapon = CurrentWeapon;
+        if (weapon == null)
+        {
+            return;
+        }
+
+        // 1. Клієнтська перевірка + Миттєві ефекти (Тряска/Звук)
+        if (weapon.TryShootClient())
+        {
+            CmdFire(direction);
+        }
+    }
+
+    // --- СЕРВЕР (Логіка) ---
+    [Command]
+    void CmdFire(Vector3 direction)
+    {
+
+        BaseWeapon weapon = CurrentWeapon;
+        if (weapon != null)
+        {
+            // 1. Просимо пістолет створити кулю (вона поки існує тільки на сервері приховано)
+            // Передаємо "gameObject" (себе) як власника
+            GameObject bulletObj = weapon.PerformShot(direction, this.gameObject);
+
+            // 2. Якщо куля успішно створена — спавнимо її в мережу
+            if (bulletObj != null)
+            {
+
+                NetworkServer.Spawn(bulletObj);
+
+                // 3. Звук для інших
+                RpcPlaySoundForOthers(activeWeaponIndex);
+            }
+        }
+        else
+        {
+            Debug.LogError("[Error] CmdFire: На сервері зброя NULL");
+        }
+    }
+
+    // --- КЛІЄНТИ (Звук для інших) ---
+    [ClientRpc(includeOwner = false)] // includeOwner = false, бо стрілок вже почув звук у TryShootClient
+    void RpcPlaySoundForOthers(int weaponIndex)
+    {
+        if (weaponIndex >= 0 && weaponIndex < weapons.Length)
+        {
+            if (weapons[weaponIndex] != null)
+                weapons[weaponIndex].PlayShootSound();
+        }
+    }
+
+    [Command]
+    void CmdSelectWeapon(int index)
+    {
+        if (activeWeaponIndex == index) return;
+        if (index >= -1 && index < weapons.Length)
+        {
+            activeWeaponIndex = index;
+        }
+    }
+
+    void OnWeaponChanged(int oldIndex, int newIndex)
+    {
+        UpdateWeaponVisuals(newIndex);
+    }
+
+    void UpdateWeaponVisuals(int index)
+    {
         for (int i = 0; i < weapons.Length; i++)
         {
-            weapons[i].gameObject.SetActive(false);
-
-            weapons[i].SetSelectStatus(false);
-            
+            if (weapons[i] != null)
+            {
+                weapons[i].gameObject.SetActive(false);
+                weapons[i].SetSelectStatus(false);
+            }
         }
 
-        // КРОК 2: Обробка режиму "Без зброї"
         if (index == -1)
         {
-            activeWeaponIndex = -1;
-
-            // Якщо є аніматор, кажемо йому перейти в стан без зброї
-            if (animator != null)
-            {
-                // Припускаємо, що -1 в аніматорі налаштовано як "Empty/Unarmed"
-                animator.SetInteger("WeaponType", -1);
-            }
-            return; // Виходимо з функції, бо вмикати нічого не треба
+            if (animator != null) animator.SetInteger("WeaponType", -1);
+            return;
         }
 
-        // КРОК 3: Перевірка на помилки (щоб не вийти за межі масиву)
-        if (index < 0 || index >= weapons.Length) return;
-
-        // КРОК 4: Вмикаємо потрібну зброю
-        activeWeaponIndex = index;
-        weapons[activeWeaponIndex].gameObject.SetActive(true);
-        weapons[activeWeaponIndex].SetSelectStatus(true);
-
-        // КРОК 5: Оновлюємо анімацію
-        if (animator != null)
+        if (index >= 0 && index < weapons.Length && weapons[index] != null)
         {
-            animator.SetInteger("WeaponType", (int) activeWeaponIndex);
+            weapons[index].gameObject.SetActive(true);
+            weapons[index].SetSelectStatus(true);
+            if (animator != null) animator.SetInteger("WeaponType", index);
+
         }
     }
 
-    public BaseWeapon GetActiveWeapon(){return CurrentWeapon;}
+    public BaseWeapon GetActiveWeapon() { return CurrentWeapon; }
 }

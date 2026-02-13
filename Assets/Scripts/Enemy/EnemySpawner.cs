@@ -40,6 +40,9 @@ public class EnemySpawner : NetworkBehaviour // 2. Успадковуємо ві
                 enemy.transform.position = randomPosition;
                 enemy.transform.rotation = Quaternion.identity; // Бажано скинути поворот
 
+                // Робимо ворога незалежним від пулу перед спавном
+                enemy.transform.SetParent(null);
+
                 // 5. Порядок дій для Mirror:
                 enemy.SetActive(true); // Спочатку вмикаємо фізично на сервері
                 NetworkServer.Spawn(enemy); // Потім кажемо мережі "Заспавни це у всіх клієнтів"

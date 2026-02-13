@@ -10,6 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 7535932476541149010}
   - component: {fileID: 3785874480498970599}
+  - component: {fileID: 9130255034231151494}
+  - component: {fileID: 2800305616971996468}
+  - component: {fileID: 5443759033078130058}
+  - component: {fileID: 5914850204666773415}
   m_Layer: 0
   m_Name: _manager_pool
   m_TagString: Untagged
@@ -44,5 +48,155 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb42e550663224c4a97df0b486c5fa98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyPooler
-  enemyPrefab: {fileID: 0}
-  poolSize: 1000
+  enemyPrefab: {fileID: 7009841015172631010, guid: 4afb25d0c05667b4586133cbd8c68210, type: 3}
+  poolSize: 100
+--- !u!114 &9130255034231151494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5710005170027657956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b91ecbcc199f4492b9a91e820070131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mirror::Mirror.NetworkIdentity
+  sceneId: 0
+  _assetId: 3777499097
+  serverOnly: 1
+  visibility: 0
+  hasSpawned: 0
+--- !u!114 &2800305616971996468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5710005170027657956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2151f5af17419ce469906a0309e74349, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BulletPool
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  bulletPrefab: {fileID: 4570007014696999347, guid: 57be1e4f9117eed4abfca1fd42235253, type: 3}
+  poolSize: 100
+--- !u!114 &5443759033078130058
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5710005170027657956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 552bbb29b80d5b4499429668ede6ad7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LootPool
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  lootPrefab: {fileID: 4763468727449527496, guid: d6970fd2f67bf5d40832a702799445ec, type: 3}
+  poolSize: 20
+  lootPickupSound: {fileID: 8300000, guid: 73fe08d976d650143acff2f1a206914b, type: 3}
+  audioSource: {fileID: 5914850204666773415}
+--- !u!82 &5914850204666773415
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5710005170027657956}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4

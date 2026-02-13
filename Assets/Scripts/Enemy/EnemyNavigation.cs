@@ -8,10 +8,20 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
     private NavMeshAgent agent;
     private Transform targetTransform;
 
+    private PlayerHealth targetHealsPlayerController; // Посилання на контролер гравця
+
+    public NetworkAnimator networkAnimator;
+
     [Header("AI Settings")]
     public float chaseRange = 15f;
     public float attackRange = 2f;
     public float lookSpeed = 5f;
+
+    // Змінні для частоти атак в EnemyAI
+    [Header("Combat Settings")]
+    public float attackInterval = 1.5f; // Ворог б'є кожні 1.5 сек
+    private float lastAttackTime;
+    public float damageAmount = 10f; // Сила удару
 
     // Інтервал пошуку гравця (щоб не навантажувати процесор кожного кадру)
     private float searchTimer;
@@ -22,10 +32,39 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
         agent = GetComponent<NavMeshAgent>();
     }
 
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+
+        // Якщо це клієнт (не сервер), вимикаємо інтелект і фізику навігації
+        // Щоб ворог рухався ТІЛЬКИ так, як каже NetworkTransform
+        if (!isServer)
+        {
+            NavMeshAgent agent = GetComponent<NavMeshAgent>();
+            if (agent != null)
+            {
+                agent.enabled = false;
+            }
+
+         }
+    }
+
     // 3. [ServerCallback] означає, що цей Update виконується ТІЛЬКИ на сервері
     [ServerCallback]
     void Update()
     {
+        // 1. Якщо у нас є ціль, перевіряємо, чи вона не померла "щойно"
+        if (targetTransform != null && targetHealsPlayerController != null)
+        {
+            if (targetHealsPlayerController.IsDead)
+            {
+                // Ціль померла під час погоні - забуваємо її
+                targetTransform = null;
+                targetHealsPlayerController = null;
+                agent.isStopped = true;
+            }
+        }
+
         // Періодично шукаємо найближчого гравця
         searchTimer -= Time.deltaTime;
         if (searchTimer <= 0)
@@ -63,9 +102,14 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
 
         float closestDistance = Mathf.Infinity;
         Transform potentialTarget = null;
+        PlayerHealth bestController = null;
 
         foreach (GameObject player in players)
         {
+            PlayerHealth pc = player.GetComponent<PlayerHealth>();
+
+            if (pc == null || pc.IsDead) continue; // Пропускаємо мертвих гравців 
+
             float d = Vector3.Distance(transform.position, player.transform.position);
 
             // Якщо цей гравець ближче за попереднього знайденого
@@ -73,11 +117,13 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
             {
                 closestDistance = d;
                 potentialTarget = player.transform;
+                bestController = pc;
             }
         }
 
         // Призначаємо ціль
         targetTransform = potentialTarget;
+        targetHealsPlayerController = bestController;
     }
 
     [Server]
@@ -104,7 +150,18 @@ public class EnemyAI : NetworkBehaviour // 2. Успадковуємося ві�
             transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * lookSpeed);
         }
 
-        // Тут можна додати логіку нанесення шкоди
-        // наприклад: targetTransform.GetComponent<PlayerHealth>().TakeDamage(10);
+        if (Time.time >= lastAttackTime + attackInterval)
+        {
+            // Наносимо урон конкретному гравцю через збережене посилання
+            targetHealsPlayerController.TakeDamage(damageAmount);
+
+            Debug.Log($"Enemy attacked player for {damageAmount} damage");
+
+            // Оновлюємо таймер
+            lastAttackTime = Time.time;
+
+            // Тут можна запустити анімацію удару через NetworkAnimator
+            networkAnimator.SetTrigger("Attack");
+        }
     }
 }
