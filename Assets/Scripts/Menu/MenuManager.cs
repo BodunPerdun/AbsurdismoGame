@@ -1,7 +1,8 @@
-using UnityEngine;
-using UnityEngine.UI;
-using Unity.Cinemachine;
 using DG.Tweening;
+using Unity.Cinemachine;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class MenuManager : MonoBehaviour
 {
@@ -14,7 +15,7 @@ public class MenuManager : MonoBehaviour
     public Animator doorAnim;
     public AudioSource musicSource; 
     public Text titleText;
-    public Button playButton;
+    //public Button playButton;
     public CanvasGroup customizationPanel;
     public CanvasGroup menuButtons; // Панель с кнопками "Loadout", "Start Game" и т.д.
 
@@ -36,6 +37,7 @@ public class MenuManager : MonoBehaviour
     public ColorPreset[] pantsColors;
 
     private bool isInLoadout;
+    // змінна для переходу до меню на початку гри
     private bool isGameStarted = false;
 
     void Start()
@@ -58,19 +60,19 @@ public class MenuManager : MonoBehaviour
         SwitchTab("Hat");
     }
 
-    public void PlayButtonHit()
+    public void GoToStartMenu()
     {
         if (isGameStarted) return;
         isGameStarted = true;
         
         if (musicSource != null) musicSource.PlayDelayed(0.5f);
         
-        playButton.interactable = false;
+        //playButton.interactable = false;
         
         // Исчезновение надписей начального экрана
         titleText?.DOFade(0, 0.6f).OnComplete(() => titleText.gameObject.SetActive(false));
-        playButton.image.DOFade(0, 0.6f);
-        playButton.GetComponentInChildren<Text>()?.DOFade(0, 0.6f).OnComplete(() => playButton.gameObject.SetActive(false));
+        //playButton.image.DOFade(0, 0.6f);
+        //playButton.GetComponentInChildren<Text>()?.DOFade(0, 0.6f).OnComplete(() => playButton.gameObject.SetActive(false));
         
         doorAnim?.SetTrigger("isStarted");
         
@@ -193,5 +195,14 @@ public class MenuManager : MonoBehaviour
 
     private void SetCameras(int m, int s, int l) { mainCam.Priority = m; secondCam.Priority = s; loudautCam.Priority = l; }
 
-    void Update() { if (isInLoadout && Input.GetKeyDown(KeyCode.Escape)) BackToSecondCam(); }
+    void Update() 
+    {
+        if (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame && !isGameStarted)
+        {
+            GoToStartMenu();
+            Debug.Log("Була натиснута якась клавіша на клавіатурі!");
+        }
+
+        if (isInLoadout && Input.GetKeyDown(KeyCode.Escape)) BackToSecondCam(); 
+    }
 }

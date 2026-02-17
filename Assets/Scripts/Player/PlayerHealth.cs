@@ -1,6 +1,7 @@
 ﻿using Mirror;
 using Mirror.Examples.Basic;
 using System.Collections;
+using System.Collections.Generic;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -18,6 +19,10 @@ public class PlayerHealth : NetworkBehaviour
     public CinemachineCamera mainCamera;
     public CinemachineCamera thirdPersonCamera;
 
+    // Для ragdoll при смерті буде гравець падати
+    private List<Rigidbody> _rigidbody;
+    private Animator animator;
+
     void Awake()
     {
         ch = GetComponent<CharacterController>();
@@ -26,6 +31,9 @@ public class PlayerHealth : NetworkBehaviour
         // Знаходимо всі меші (тіло, зброя, одяг) у цьому об'єкті та дочірніх
         renderers = GetComponentsInChildren<Renderer>();
 
+        // Ініціалізуємо список Rigidbody для ragdoll та анімації
+        _rigidbody = new List<Rigidbody>(GetComponentsInChildren<Rigidbody>());
+        animator = GetComponent<Animator>();
     }
 
     public override void OnStartServer()
@@ -49,12 +57,29 @@ public class PlayerHealth : NetworkBehaviour
         StartCoroutine(RespawnRoutine());
     }
 
+
+    private void RpcSetIsKinematic(bool state)
+    {
+        foreach (var rb in _rigidbody)
+        {
+            rb.isKinematic = state;
+        }
+
+        animator.enabled = state; // Вмикаємо/вимикаємо анімацію в залежності від стану ragdoll
+    }
+    //========================================================================================
+
     [ClientRpc]
     private void RpcOnDeath()
     {
+        /*
         // Вимкнути візуал та рух
         if (ch) ch.enabled = false;
         foreach (var r in renderers) r.enabled = false;
+        */
+
+        // Вимикаємо коллайдери та рендерери, вмикаємо фізику для ragdoll
+        RpcSetIsKinematic(!isDead);
 
         // Якщо це МІЙ локальний гравець помер -> вмикаємо режим спостерігача
         if (isOwned)
@@ -90,8 +115,17 @@ public class PlayerHealth : NetworkBehaviour
     private void RpcOnRespawn(Vector3 pos)
     {
         transform.position = pos;
-        if (ch) ch.enabled = true;
-        foreach (var r in renderers) r.enabled = true;
+        /*
+            if (ch) ch.enabled = true;
+            foreach (var r in renderers) r.enabled = true;
+        */
+
+        RpcSetIsKinematic(!isDead);
+
+        foreach (var rb in _rigidbody)
+        {
+            rb.isKinematic = true;
+        }
 
         // Якщо це МІЙ локальний гравець відродився -> вимикаємо режим спостерігача
 

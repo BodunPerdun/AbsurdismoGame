@@ -29,6 +29,28 @@ public class WeaponsSwitching : NetworkBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha3) && weapons.Length > 1) CmdSelectWeapon(1);
     }
 
+    public void FireAtTarget(Vector3 targetPoint)
+    {
+        BaseWeapon weapon = CurrentWeapon;
+        if (weapon == null) return;
+
+        // Отримуємо позицію дула. 
+        // ВАЖЛИВО: Переконайся, що в BaseWeapon є публічне поле firePoint або transform, звідки вилітає куля.
+        // Якщо в BaseWeapon немає firePoint, використовуй weapon.transform.position, але це буде менш точно.
+        Transform muzzleTransform = weapon.transform;
+
+        // Спробуй знайти firePoint у компоненті зброї, якщо він там є (псевдокод):
+        // if (weapon.firePoint != null) muzzleTransform = weapon.firePoint;
+
+        // Розраховуємо ПРАВИЛЬНИЙ напрямок: від Дула до Точки
+        Vector3 direction = targetPoint - muzzleTransform.position;
+
+        // DEBUG: Малюємо траєкторію кулі (Червона)
+        Debug.DrawRay(muzzleTransform.position, direction, Color.red, 2f);
+
+        Fire(direction); // Викликаємо твій старий метод Fire, але вже з правильним вектором
+    }
+
     // --- ВХІД (Клієнт) ---
     public void Fire(Vector3 direction)
     {
@@ -41,7 +63,7 @@ public class WeaponsSwitching : NetworkBehaviour
         // 1. Клієнтська перевірка + Миттєві ефекти (Тряска/Звук)
         if (weapon.TryShootClient())
         {
-            CmdFire(direction);
+            CmdFire(direction.normalized);
         }
     }
 

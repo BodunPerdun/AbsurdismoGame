@@ -183,15 +183,25 @@ public class PlayerMovement : NetworkBehaviour
 
         if (weapons && Controls.Player.Fire.WasPressedThisFrame())
         {
-            // Стріляємо рівно по центру екрана
+            // 1. Знаходимо точку, куди дивиться гравець
             Ray ray = new Ray(cameraRoot.position, cameraRoot.forward);
-            Vector3 targetPoint = ray.GetPoint(100f);
+            Vector3 targetPoint;
 
-            // Якщо у щось влучили променем - цілимось туди, якщо ні - просто вперед на 100м
             if (Physics.Raycast(ray, out RaycastHit hit))
+            {
                 targetPoint = hit.point;
+            }
+            else
+            {
+                targetPoint = ray.GetPoint(100f);
+            }
 
-            weapons.Fire(targetPoint - transform.position);
+            // DEBUG: Малюємо лінію погляду (Зелена)
+            Debug.DrawLine(cameraRoot.position, targetPoint, Color.green, 2f);
+
+            // 2. Передаємо в зброю ТОЧКУ, а не напрямок. 
+            // Нехай зброя сама вирішує, як туди стріляти від дула.
+            weapons.FireAtTarget(targetPoint);
         }
     }
 
