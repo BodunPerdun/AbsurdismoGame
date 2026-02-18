@@ -646,6 +646,9 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 545f9535578e0ed428f65373739ff165, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 5922856998269049906}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 545f9535578e0ed428f65373739ff165, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 3528105761433187699}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 545f9535578e0ed428f65373739ff165, type: 3}
       insertIndex: -1
@@ -1624,6 +1627,27 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 545f9535578e0ed428f65373739ff165, type: 3}
   m_PrefabInstance: {fileID: 6864416191801808408}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5922856998269049906
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6017416006191049545}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe1da5a09f6530245b7571f16cd81096, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSceneHandler
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  menuSceneName: LobbyScene
+  gameSceneName: SampleScene
+  scriptsToControl: []
+  playerCameraObject: {fileID: 8426827289507747051}
+  lobbyVisuals: []
+  gameVisuals: []
 --- !u!114 &3528105761433187699
 MonoBehaviour:
   m_ObjectHideFlags: 0
