@@ -1644,7 +1644,12 @@ MonoBehaviour:
   syncInterval: 0
   menuSceneName: LobbyScene
   gameSceneName: SampleScene
-  scriptsToControl: []
+  scriptsToControl:
+  - {fileID: 3528105761433187699}
+  - {fileID: 9189012566890842914}
+  - {fileID: 8979782075246803637}
+  characterController: {fileID: 7705824437527316871}
+  animator: {fileID: 1020588140979153801}
   playerCameraObject: {fileID: 8426827289507747051}
   lobbyVisuals: []
   gameVisuals: []
@@ -1675,7 +1680,7 @@ MonoBehaviour:
   trail1: {fileID: 0}
   trail2: {fileID: 0}
   dashSound: {fileID: 8300000, guid: 98407eb4d2a19b640b452b24969e7d61, type: 3}
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 6772556760148371877}
 --- !u!114 &9189012566890842914
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1713,6 +1718,7 @@ MonoBehaviour:
   respawnTime: 10
   ch: {fileID: 7705824437527316871}
   renderers: []
+  networkTransform: {fileID: 8808586666876417823}
   mainCamera: {fileID: 7658701729691547403}
   thirdPersonCamera: {fileID: 6669147842310506986}
 --- !u!114 &2568633872454248872
@@ -1730,8 +1736,8 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  audioSource: {fileID: 0}
-  lootPickupSound: {fileID: 0}
+  audioSource: {fileID: 6772556760148371877}
+  lootPickupSound: {fileID: 8300000, guid: 73fe08d976d650143acff2f1a206914b, type: 3}
 --- !u!82 &6772556760148371877
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1915,13 +1921,13 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 2
-  m_Radius: 0.5
+  m_Height: 6
+  m_Radius: 0.68
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 3.02, z: 0}
 --- !u!4 &6283224357941276772 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 608321761475470972, guid: 545f9535578e0ed428f65373739ff165, type: 3}

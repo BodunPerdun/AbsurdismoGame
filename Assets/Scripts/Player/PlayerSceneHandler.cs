@@ -6,8 +6,8 @@ using Unity.Cinemachine;
 public class PlayerSceneHandler : NetworkBehaviour
 {
     [Header("Налаштування Сцен")]
-    public string menuSceneName = "LobbyScene"; // Назва сцени меню
-    public string gameSceneName = "SampleScene"; // Назва ігрової сцени (рівня)
+    public string menuSceneName = "LobbyScene";
+    public string gameSceneName = "SampleScene";
 
     [Header("Компоненти для керування")]
     [Tooltip("Скрипти, які треба вимкнути в лобі (Movement, Shooting тощо)")]
@@ -17,21 +17,62 @@ public class PlayerSceneHandler : NetworkBehaviour
     public GameObject playerCameraObject;
 
     [Tooltip("UI або графіка, яку треба ховати/показувати")]
-    public GameObject[] lobbyVisuals; // Наприклад, моделька для меню
-    public GameObject[] gameVisuals;  // Наприклад, руки зі зброєю
+    public GameObject[] lobbyVisuals;
+    public GameObject[] gameVisuals;
+
+    // Додаємо змінну для AudioListener, щоб уникнути конфліктів звуку
+    private AudioListener _audioListener;
+
+    private void Awake()
+    {
+        // Кешуємо AudioListener, якщо він є на камері
+        if (playerCameraObject != null)
+        {
+            _audioListener = playerCameraObject.GetComponent<AudioListener>();
+            if (_audioListener == null)
+                _audioListener = playerCameraObject.GetComponentInChildren<AudioListener>();
+        }
+    }
+
+    // Start викликається для ВСІХ гравців (і мого, і чужих)
+    private void Start()
+    {
+        // КРИТИЧНО ВАЖЛИВО:
+        // Якщо цей об'єкт НЕ належить мені (це друг, який бігає поруч),
+        // ми маємо ЗАЛІЗОБЕТОННО вимкнути його камеру.
+        if (!isLocalPlayer)
+        {
+            if (playerCameraObject != null)
+            {
+                playerCameraObject.SetActive(false);
+            }
+
+            if (_audioListener != null)
+            {
+                _audioListener.enabled = false;
+            }
+
+            // Також можна вимкнути візуал "рук" для чужих гравців, якщо треба
+            return;
+        }
+
+        // Якщо це МІЙ гравець - перевіряємо сцену і налаштовуємось
+        CheckSceneState();
+    }
 
     public override void OnStartLocalPlayer()
     {
-        // Цей метод викликається тільки для локального гравця
+        // Це спрацьовує при старті, але також дублюємо логіку в Start для надійності
         CheckSceneState();
-
-        // Підписуємось на подію зміни сцени (якщо ви переходите між сценами не знищуючи гравця)
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void OnDestroy()
     {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
+        if (isLocalPlayer)
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -44,6 +85,9 @@ public class PlayerSceneHandler : NetworkBehaviour
 
     private void CheckSceneState()
     {
+        // Додатковий захист: ніколи не вмикаємо логіку для чужих гравців
+        if (!isLocalPlayer) return;
+
         string currentScene = SceneManager.GetActiveScene().name;
 
         if (currentScene == menuSceneName)
@@ -52,50 +96,44 @@ public class PlayerSceneHandler : NetworkBehaviour
         }
         else
         {
-            // Вважаємо, що будь-яка інша сцена (або конкретна gameSceneName) - це гра
             SetupGameState();
         }
     }
 
     private void SetupLobbyState()
     {
-        // 1. Розблокуємо курсор
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // 2. Вимикаємо керування
         SetScriptsEnabled(false);
 
-        // 3. Вимикаємо бойову камеру
+        // В лобі камера гравця не потрібна (там камера меню)
         if (playerCameraObject != null) playerCameraObject.SetActive(false);
+        if (_audioListener != null) _audioListener.enabled = false;
 
-        // 4. Візуал
         ToggleVisuals(lobbyVisuals, true);
         ToggleVisuals(gameVisuals, false);
     }
 
     private void SetupGameState()
     {
-        // 1. Блокуємо курсор
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        // 2. Вмикаємо керування (Movement, Shooting)
         SetScriptsEnabled(true);
 
-        // 3. Вмикаємо камеру
+        // В грі вмикаємо камеру
         if (playerCameraObject != null)
         {
             playerCameraObject.SetActive(true);
+            if (_audioListener != null) _audioListener.enabled = true;
 
-            // Реєструємо камеру в менеджері (код перенесено з Movement)
             if (CameraManager.Instance != null)
             {
                 CameraManager.Instance.RegisterCamera(playerCameraObject.GetComponent<CinemachineCamera>());
             }
         }
 
-        // 4. Візуал
         ToggleVisuals(lobbyVisuals, false);
         ToggleVisuals(gameVisuals, true);
     }
