@@ -19,7 +19,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2051958494768405271
 Transform:
   m_ObjectHideFlags: 0
@@ -64,8 +64,8 @@ MonoBehaviour:
   headlessStartMode: 0
   editorAutoStart: 0
   sendRate: 60
-  offlineScene: 
-  onlineScene: 
+  offlineScene: Assets/Scenes/LobbyScene.unity
+  onlineScene: Assets/Scenes/SampleScene.unity
   offlineSceneLoadDelay: 0
   transport: {fileID: 5721900288097935900}
   networkAddress: localhost
@@ -73,7 +73,7 @@ MonoBehaviour:
   disconnectInactiveConnections: 0
   disconnectInactiveTimeout: 60
   authenticator: {fileID: 0}
-  playerPrefab: {fileID: 8884562835580537157, guid: 6a2afd8545043f14aa56fd6af1f31906, type: 3}
+  playerPrefab: {fileID: 6017416006191049545, guid: 41a11d4f09ec23d4d8452fc3c4bb42ad, type: 3}
   autoCreatePlayer: 1
   playerSpawnMethod: 1
   spawnPrefabs:

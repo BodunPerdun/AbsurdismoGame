@@ -55,12 +55,26 @@ public class SpectatorManager : MonoBehaviour
         }
     }
 
-    // === РЕЄСТРАЦІЯ ===
+
     public void RegisterPlayersCamera(CinemachineCamera camera)
     {
         if (camera != null && !_activePlayersCameras.Contains(camera))
         {
+            // === ВИПРАВЛЕННЯ ===
+            // Примусово "гасимо" камеру при реєстрації.
+            // Це гарантує, що коли хтось оживає, його камера не перехопить вигляд у локального гравця.
+            camera.Priority = 0;
+            camera.gameObject.SetActive(false);
+            // ===================
+
             _activePlayersCameras.Add(camera);
+
+            // (Опціонально) Якщо ми зараз в режимі спостерігача і дивимось на "Базу", 
+            // можна автоматично переключитися на цього гравця, що ожив.
+            if (_isSpectating && _activePlayersCameras.Count == 1)
+            {
+                SwitchSpectatorTarget(0);
+            }
         }
     }
 
@@ -97,9 +111,11 @@ public class SpectatorManager : MonoBehaviour
         Debug.Log("Spectator Mode: OFF");
     }
 
+    // SpectatorManager.cs
+
     private void SwitchSpectatorTarget(int direction)
     {
-        // 1. Якщо нікого немає - база
+        // 1. Якщо нікого немає - вмикаємо базу
         if (_activePlayersCameras.Count == 0)
         {
             ActivateBaseCamera();
@@ -109,15 +125,41 @@ public class SpectatorManager : MonoBehaviour
         // 2. Якщо є гравці - вимикаємо базову
         if (baseCamera) baseCamera.gameObject.SetActive(false);
 
-        // 3. Рахуємо індекс
-        _spectatorIndex += direction;
-        if (_spectatorIndex >= _activePlayersCameras.Count) _spectatorIndex = 0;
-        if (_spectatorIndex < 0) _spectatorIndex = _activePlayersCameras.Count - 1;
+        // 3. Шукаємо ЖИВОГО гравця
+        // Ми робимо це в циклі, щоб пропустити всіх мертвих, якщо такі залишились у списку
+        int originalIndex = _spectatorIndex;
+        int attempts = 0;
 
-        CinemachineCamera target = _activePlayersCameras[_spectatorIndex];
+        // Цикл працює поки ми не перевіримо всіх гравців у списку
+        while (attempts < _activePlayersCameras.Count)
+        {
+            _spectatorIndex += direction;
 
-        // 4. Активуємо ціль
-        SetCameraTarget(target);
+            // Зациклення списку (по колу)
+            if (_spectatorIndex >= _activePlayersCameras.Count) _spectatorIndex = 0;
+            if (_spectatorIndex < 0) _spectatorIndex = _activePlayersCameras.Count - 1;
+
+            CinemachineCamera candidateCam = _activePlayersCameras[_spectatorIndex];
+
+            // Перевіряємо, чи камера існує і чи живий її власник
+            if (candidateCam != null)
+            {
+                // Намагаємось отримати скрипт здоров'я з батьківського об'єкта камери
+                var playerHealth = candidateCam.GetComponentInParent<PlayerHealth>();
+
+                // Якщо скрипт знайдено і гравець НЕ мертвий - ми знайшли ціль!
+                if (playerHealth != null && !playerHealth.IsDead)
+                {
+                    SetCameraTarget(candidateCam);
+                    return; // Виходимо, бо знайшли живого
+                }
+            }
+
+            attempts++;
+        }
+
+        // 4. Якщо ми пройшли весь цикл і не знайшли жодного живого гравця (всі мертві)
+        ActivateBaseCamera();
     }
 
     private void SetCameraTarget(CinemachineCamera target)

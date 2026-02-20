@@ -16,7 +16,7 @@ public class PlayerMovement : NetworkBehaviour
 
     [Header("Stats")]
     public float moveSpeed = 5f;
-    public float jumpHeight = 1.5f; // Висота стрибка
+    public float jumpHeight = 2.5f; // Висота стрибка
     public float gravityMultiplier = 1.0f; // Щоб налаштувати "важкість" падіння
 
     [Header("First Person Settings")]
@@ -70,33 +70,33 @@ public class PlayerMovement : NetworkBehaviour
         }
     }
 
-    public override void OnStartLocalPlayer()
-    {
-        // 1. Вмикаємо камеру ТІЛЬКИ якщо це наш гравець
-        if (playerCameraObject != null)
-        {
-            playerCameraObject.SetActive(true);
-        }
+    //public override void OnStartLocalPlayer()
+    //{
+    //    // 1. Вмикаємо камеру ТІЛЬКИ якщо це наш гравець
+    //    if (playerCameraObject != null)
+    //    {
+    //        playerCameraObject.SetActive(true);
+    //    }
 
-        // Курсор
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+    //    // Курсор
+    //    Cursor.lockState = CursorLockMode.Locked;
+    //    Cursor.visible = false;
 
-        // Реєструємося в менеджері
-        if (CameraManager.Instance != null && playerCameraObject != null)
-        {
-            CameraManager.Instance.RegisterCamera(playerCameraObject.GetComponent<CinemachineCamera>());
-        }
-    }
+    //    // Реєструємося в менеджері
+    //    if (CameraManager.Instance != null && playerCameraObject != null)
+    //    {
+    //        CameraManager.Instance.RegisterCamera(playerCameraObject.GetComponent<CinemachineCamera>());
+    //    }
+    //}
 
-    void Start()
-    {
-        // Для безпеки: якщо це НЕ мій гравець, вимикаємо камеру примусово
-        if (!isOwned && playerCameraObject != null)
-        {
-            playerCameraObject.SetActive(false);
-        }
-    }
+    //void Start()
+    //{
+    //    // Для безпеки: якщо це НЕ мій гравець, вимикаємо камеру примусово
+    //    if (!isOwned && playerCameraObject != null)
+    //    {
+    //        playerCameraObject.SetActive(false);
+    //    }
+    //}
 
     void OnEnable() => Controls.Player.Enable();
     void OnDisable() => Controls.Player.Disable();
@@ -183,15 +183,25 @@ public class PlayerMovement : NetworkBehaviour
 
         if (weapons && Controls.Player.Fire.WasPressedThisFrame())
         {
-            // Стріляємо рівно по центру екрана
+            // 1. Знаходимо точку, куди дивиться гравець
             Ray ray = new Ray(cameraRoot.position, cameraRoot.forward);
-            Vector3 targetPoint = ray.GetPoint(100f);
+            Vector3 targetPoint;
 
-            // Якщо у щось влучили променем - цілимось туди, якщо ні - просто вперед на 100м
             if (Physics.Raycast(ray, out RaycastHit hit))
+            {
                 targetPoint = hit.point;
+            }
+            else
+            {
+                targetPoint = ray.GetPoint(100f);
+            }
 
-            weapons.Fire(targetPoint - transform.position);
+            // DEBUG: Малюємо лінію погляду (Зелена)
+            Debug.DrawLine(cameraRoot.position, targetPoint, Color.green, 2f);
+
+            // 2. Передаємо в зброю ТОЧКУ, а не напрямок. 
+            // Нехай зброя сама вирішує, як туди стріляти від дула.
+            weapons.FireAtTarget(targetPoint);
         }
     }
 
@@ -242,5 +252,5 @@ public class PlayerMovement : NetworkBehaviour
     }
 
     // --- Чисто для камера/спостерігача, щоб знати, що цей гравець помер ---
-    public CinemachineCamera GetPlayerCamera() { return thirdPersonCamera;}
+    public CinemachineCamera GetPlayerCamera() { return thirdPersonCamera; }
 }

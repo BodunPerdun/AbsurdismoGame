@@ -1,6 +1,7 @@
 ﻿using Mirror;
 using Mirror.Examples.Basic;
 using System.Collections;
+using System.Collections.Generic;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -14,18 +15,29 @@ public class PlayerHealth : NetworkBehaviour
     // Посилання на компоненти, які треба вимикати при смерті
     [SerializeField] private CharacterController ch;
     [SerializeField] private Renderer[] renderers; // Призначити в інспекторі або знайти в Awake
+    [SerializeField] private NetworkTransformReliable networkTransform;
 
     public CinemachineCamera mainCamera;
     public CinemachineCamera thirdPersonCamera;
+
+    // Для ragdoll при смерті буде гравець падати
+    private List<Rigidbody> _rigidbodies;
+    private Animator animator;
 
     void Awake()
     {
         ch = GetComponent<CharacterController>();
 
+        // Знаходимо NetworkTransform, якщо не задано в інспекторі
+        if (networkTransform == null) networkTransform = GetComponent<NetworkTransformReliable>();
+
         // АВТОМАТИЧНИЙ ПОШУК КОМПОНЕНТІВ
         // Знаходимо всі меші (тіло, зброя, одяг) у цьому об'єкті та дочірніх
         renderers = GetComponentsInChildren<Renderer>();
 
+        // Ініціалізуємо список Rigidbody для ragdoll та анімації
+        _rigidbodies = new List<Rigidbody>(GetComponentsInChildren<Rigidbody>());
+        animator = GetComponent<Animator>();
     }
 
     public override void OnStartServer()
@@ -49,16 +61,54 @@ public class PlayerHealth : NetworkBehaviour
         StartCoroutine(RespawnRoutine());
     }
 
+
+    private void SetRagdollState(bool active)
+    {
+        // 1. Вмикаємо/вимикаємо аніматор (коли активний ragdoll - аніматор вимкнений)
+        if (animator) animator.enabled = !active;
+
+        // 2. Вмикаємо/вимикаємо CharacterController
+        if (ch) ch.enabled = !active;
+
+        // 3. ВАЖЛИВО: Вимикаємо NetworkTransform, щоб він не заважав фізиці падати
+        if (networkTransform) networkTransform.enabled = !active;
+
+        // 4. Налаштовуємо фізику кісток
+        foreach (var rb in _rigidbodies)
+        {
+            rb.isKinematic = !active; // Якщо ragdoll активний, кінематика вимкнена (падає)
+        }
+
+        //foreach (var col in _colliders)
+        //{
+        //    col.enabled = active; // Вмикаємо коллайдери кісток при смерті
+        //}
+    }
+    //========================================================================================
+
     [ClientRpc]
     private void RpcOnDeath()
     {
+        isDead = true;
+        /*
         // Вимкнути візуал та рух
         if (ch) ch.enabled = false;
         foreach (var r in renderers) r.enabled = false;
+        */
+
+        // Вимикаємо коллайдери та рендерери, вмикаємо фізику для ragdoll
+        SetRagdollState(isDead);
 
         // Якщо це МІЙ локальний гравець помер -> вмикаємо режим спостерігача
         if (isOwned)
         {
+            // Примусово вимикаємо СВОЮ головну камеру
+            if (mainCamera)
+            {
+                mainCamera.gameObject.SetActive(false);
+                mainCamera.Priority = 0;
+            }
+
             if (SpectatorManager.Instance != null)
             {
                 SpectatorManager.Instance.EnableSpectatorMode();
@@ -90,30 +140,44 @@ public class PlayerHealth : NetworkBehaviour
     private void RpcOnRespawn(Vector3 pos)
     {
         transform.position = pos;
-        if (ch) ch.enabled = true;
-        foreach (var r in renderers) r.enabled = true;
+        /*
+            if (ch) ch.enabled = true;
+            foreach (var r in renderers) r.enabled = true;
+        */
+        isDead = false;
 
-        // Якщо це МІЙ локальний гравець відродився -> вимикаємо режим спостерігача
+        SetRagdollState(isDead);
 
-        // 1. Повертаємо камеру в список спостереження (бо гравець ожив)
+
+        // 1. Спочатку реєструємо камеру для інших спостерігачів.
+        // Завдяки фіксу в SpectatorManager вона додасться ВИМКНЕНОЮ.
         if (SpectatorManager.Instance != null && thirdPersonCamera != null)
         {
             SpectatorManager.Instance.RegisterPlayersCamera(thirdPersonCamera);
         }
 
-        // 2. Якщо це МІЙ гравець - вимикаю режим спостерігача
+        // 2. Логіка для локального гравця (МЕНЕ)
         if (isOwned)
         {
+            // Якщо ми були в режимі спостерігача — виходимо
             if (SpectatorManager.Instance != null)
             {
                 SpectatorManager.Instance.DisableSpectatorMode();
             }
 
-            // Примусово вмикаємо свою камеру
+            // Примусово вмикаємо СВОЮ головну камеру
             if (mainCamera)
             {
                 mainCamera.gameObject.SetActive(true);
-                mainCamera.Priority = 10;
+                mainCamera.Priority = 100;
+            }
+
+            // ВАЖЛИВО: Переконуємось, що наша власна камера для спостереження (thirdPerson)
+            // не активна для нас самих, щоб не перебивати MainCamera.
+            if (thirdPersonCamera)
+            {
+                thirdPersonCamera.Priority = 0;
+                thirdPersonCamera.gameObject.SetActive(false);
             }
         }
     }
