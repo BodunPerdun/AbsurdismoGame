@@ -2295,6 +2295,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 3851479589950655143}
   - {fileID: 2881224611887458206}
   m_Father: {fileID: 373582851859384842}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3536,7 +3537,6 @@ Transform:
   - {fileID: 1484399632967160167}
   - {fileID: 6239279649631334316}
   - {fileID: 4352921834073999025}
-  - {fileID: 3851479589950655143}
   - {fileID: 755196341467818288}
   - {fileID: 1081081802072687694}
   m_Father: {fileID: 0}
@@ -3583,6 +3583,7 @@ MonoBehaviour:
   browContainer: {fileID: 1081081802072687694}
   bodyRenderer: {fileID: 5324083014202788682}
   pantsRenderer: {fileID: 5764328521793352185}
+  bodyHairModel: {fileID: 5705961959134481829}
   hatIndex: -1
   beardIndex: -1
   browIndex: -1
@@ -5132,8 +5133,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7745105325974968549}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0.000000014901159, y: -1.039238e-10, z: 1.6431462e-11, w: 1}
+  m_LocalPosition: {x: 0.00016342668, y: -4.9710774, z: 0.11462649}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5141,12 +5142,12 @@ Transform:
   - {fileID: 8349766713348659759}
   - {fileID: 4788192643494529874}
   - {fileID: 7459308904265903206}
-  - {fileID: 8436545614891397852}
   - {fileID: 4830336819945109893}
+  - {fileID: 8436545614891397852}
   - {fileID: 6640138998551999770}
   - {fileID: 7682195369586429649}
   - {fileID: 342949574275241636}
-  m_Father: {fileID: 6397916691182137843}
+  m_Father: {fileID: 1055361435547280240}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7884287577771074577
 GameObject:

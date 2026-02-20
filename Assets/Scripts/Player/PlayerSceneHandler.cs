@@ -171,15 +171,16 @@ public class PlayerSceneHandler : NetworkBehaviour
         switch (newState)
         {
             case -1: // Вимкнення всіх анімацій (при вході в гру)
-                animator.ResetTrigger("SittingState");
+                animator.SetBool("SittingState", false);
                 //animator.ResetTrigger("GoToGame");
                 //animator.ResetTrigger("Dance");
                 //animator.ResetTrigger("Wave");
 
                 break;
             case 0: // ЛОБІ
+                Debug.Log("Включеємо анмацію сидіння");
                 // "SittingState" — це назва оранжевого/сірого прямокутника в Animator Controller
-                animator.SetTrigger("SittingState");
+                animator.SetBool("SittingState", true);
                 break;
 
             case 1: // ГРА (IDLE/LOCOMOTION)

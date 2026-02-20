@@ -1,9 +1,9 @@
 using DG.Tweening;
+using Mirror; // Додано для Single Player логіки
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using Mirror; // Додано для Single Player логіки
 
 public class MenuManager : MonoBehaviour
 {
@@ -26,6 +26,7 @@ public class MenuManager : MonoBehaviour
     public CanvasGroup lobbyButtons;
 
     [Header("Кнопки Лобі")]
+    public Button hostGameButton; // щоб ховати її від клієнтів, які приєднуються до лобі
     public Button startGameButton; // Кнопка "Start Game", щоб ховати її від клієнтів
     public Button inviteButton;
 
@@ -37,6 +38,7 @@ public class MenuManager : MonoBehaviour
     public Button tabHatBtn, tabBeardBtn, tabBrowBtn, tabBodyBtn;
 
     [Header("Дані Предметів")]
+    public GameObject bobyHairModel;
     public CustomizationManager.CustomizationItem[] hats;
     public CustomizationManager.CustomizationItem[] beards;
     public CustomizationManager.CustomizationItem[] brows;
@@ -47,6 +49,7 @@ public class MenuManager : MonoBehaviour
     public ColorPreset[] pantsColors;
 
     private bool isInLoadout;
+    private bool isLobby;
     private bool isGameStarted = false;
 
     void Start()
@@ -124,10 +127,10 @@ public class MenuManager : MonoBehaviour
         titleText?.DOFade(0, 0.6f).OnComplete(() => titleText.gameObject.SetActive(false));
         doorAnim?.SetTrigger("isStarted");
 
-        brain.DefaultBlend.Time = 6f;
+        brain.DefaultBlend.Time = 5f;
         SetCameras(0, 20, 0, 0);
 
-        DOVirtual.DelayedCall(6f, () => {
+        DOVirtual.DelayedCall(3f, () => {
             menuButtons.gameObject.SetActive(true);
             menuButtons.DOFade(1, 1.5f);
             menuButtons.interactable = true; // Вмикаємо взаємодію
@@ -137,6 +140,7 @@ public class MenuManager : MonoBehaviour
     public void GoToLoadout()
     {
         menuButtons.DOFade(0, 0.3f).OnComplete(() => menuButtons.gameObject.SetActive(false));
+        lobbyButtons.DOFade(0, 0.3f).OnComplete(() => lobbyButtons.gameObject.SetActive(false));
 
         brain.DefaultBlend.Time = 2f;
         SetCameras(0, 0, 20, 0);
@@ -153,28 +157,48 @@ public class MenuManager : MonoBehaviour
 
     public void BackToSecondCam()
     {
-        customizationPanel.DOFade(0, 0.3f).OnComplete(() => customizationPanel.gameObject.SetActive(false));
+        if (isInLoadout && !isLobby)
+        {
+            customizationPanel.DOFade(0, 0.3f).OnComplete(() => customizationPanel.gameObject.SetActive(false));
 
-        // Також ховаємо кнопки лобі, якщо ми вирішили вийти з лобі назад (якщо додати кнопку Back)
-        lobbyButtons.DOFade(0, 0.3f).OnComplete(() => lobbyButtons.gameObject.SetActive(false));
 
-        SetCameras(0, 20, 0, 0);
-        isInLoadout = false;
+            SetCameras(0, 20, 0, 0);
+            isInLoadout = false;
 
-        DOVirtual.DelayedCall(1.5f, () => {
-            if (!isInLoadout)
-            {
-                menuButtons.gameObject.SetActive(true);
-                menuButtons.DOFade(1, 0.5f);
-                menuButtons.interactable = true;
-            }
-        });
+            DOVirtual.DelayedCall(1.5f, () => {
+                if (!isInLoadout)
+                {
+                    menuButtons.gameObject.SetActive(true);
+                    menuButtons.DOFade(1, 0.5f);
+                    menuButtons.interactable = true;
+                }
+            });
+        }
+
+        if (isLobby)
+        {
+            customizationPanel.DOFade(0, 0.3f).OnComplete(() => customizationPanel.gameObject.SetActive(false));
+
+            SetCameras(0, 0, 0, 20);
+            isInLoadout = false;
+
+            DOVirtual.DelayedCall(1.5f, () => {
+                if (!isInLoadout)
+                {
+                    lobbyButtons.gameObject.SetActive(true);
+                    lobbyButtons.DOFade(1, 0.5f);
+                    lobbyButtons.interactable = true;
+                }
+            });
+        }
     }
 
     public void GoToLobby()
     {
         // 1. Ховаємо кнопки меню
         menuButtons.DOFade(0, 0.3f).OnComplete(() => menuButtons.gameObject.SetActive(false));
+        
+        isLobby = true; // Встановлюємо прапорець, що ми в лобі, щоб логіка в Update() могла реагувати на це
 
         // 2. Їдемо камерою до лобі
         brain.DefaultBlend.Time = 2f;
@@ -235,21 +259,38 @@ public class MenuManager : MonoBehaviour
             }
         }
         PlayerPrefs.SetInt("Selected" + type, index);
+
+        // --- НОВИЙ КОД: Оновлюємо реального гравця в мережі ---
+        if (NetworkClient.localPlayer != null)
+        {
+            var netPlayer = NetworkClient.localPlayer.GetComponent<NetworkPlayerCustomization>();
+            if (netPlayer != null) netPlayer.CmdUpdateItem(type, index);
+        }
     }
 
     private void HandleColorSelection(Color c, string type)
     {
         PlayerPrefs.SetString(type + "Color", "#" + ColorUtility.ToHtmlStringRGBA(c));
         ApplyColorByType(type, c);
-    }
 
+        // --- НОВИЙ КОД: Оновлюємо реального гравця в мережі ---
+        if (NetworkClient.localPlayer != null)
+        {
+            var netPlayer = NetworkClient.localPlayer.GetComponent<NetworkPlayerCustomization>();
+            if (netPlayer != null) netPlayer.CmdUpdateColor(type, c);
+        }
+    }
     private void ApplyColorByType(string type, Color c)
     {
         if (type == "Skin") cust.ApplyColor(cust.bodyRenderer, c);
         if (type == "Pants") cust.ApplyColor(cust.pantsRenderer, c);
 
         if (type == "HatColor") foreach (var h in hats) cust.ApplyToAllRenderers(h.model, c);
-        if (type == "BeardColor") foreach (var b in beards) cust.ApplyToAllRenderers(b.model, c);
+        if (type == "BeardColor")
+        {
+            foreach (var b in beards) cust.ApplyToAllRenderers(b.model, c);
+            if (bobyHairModel != null) cust.ApplyToAllRenderers(bobyHairModel, c);
+        }
         if (type == "BrowColor") foreach (var br in brows) cust.ApplyToAllRenderers(br.model, c);
     }
 
@@ -278,11 +319,22 @@ public class MenuManager : MonoBehaviour
 
     void Update()
     {
+        // Старт гри при натисканні будь-якої клавіші, якщо ми ще не почали
         if (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame && !isGameStarted)
-        {
-            GoToStartMenu();
-        }
+        {GoToStartMenu();}
 
+        // Повернення назад з лоадаута до другого каму, якщо натиснути Esc
         if (isInLoadout && Input.GetKeyDown(KeyCode.Escape)) BackToSecondCam();
+
+
+        // Ховання кнопки "Host Game" для клієнтів, які приєдналися до лобі (бо вони не можуть бути хостами)
+        if (hostGameButton != null)
+        {
+            // NetworkClient.active повертає true, якщо ми підключені як клієнт АБО як хост
+            hostGameButton.interactable = !NetworkClient.active;
+
+            // Або якщо хочеш повністю ховати її, а не робити сірою:
+            // hostGameButton.gameObject.SetActive(!NetworkClient.active);
+        }
     }
 }
