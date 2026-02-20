@@ -13,6 +13,7 @@ public class NetworkPlayerCustomization : NetworkBehaviour
     [Header("Renderers")]
     public Renderer bodyRenderer;
     public Renderer pantsRenderer;
+    public GameObject bodyHairModel;
 
     // --- SyncVars (Синхронізовані змінні) ---
     // hook викликається автоматично, коли значення змінюється
@@ -41,9 +42,10 @@ public class NetworkPlayerCustomization : NetworkBehaviour
 
         Color sColor = LoadColor("SkinColor", Color.white);
         Color pColor = LoadColor("PantsColor", Color.gray);
-        Color hColor = LoadColor("HatColor", Color.white);
-        Color bColor = LoadColor("BeardColor", Color.black);
-        Color brColor = LoadColor("BrowColor", Color.black);
+
+        Color hColor = LoadColor("HatColorColor", Color.white);
+        Color bColor = LoadColor("BeardColorColor", Color.black);
+        Color brColor = LoadColor("BrowColorColor", Color.black);
 
         // Відправляємо дані на сервер
         CmdSyncCustomization(hIndex, bIndex, brIndex, sColor, pColor, hColor, bColor, brColor);
@@ -83,7 +85,11 @@ public class NetworkPlayerCustomization : NetworkBehaviour
     void OnPantsColorChanged(Color oldCol, Color newCol) => ApplyColor(pantsRenderer, newCol);
 
     void OnHatColorChanged(Color oldCol, Color newCol) => ApplyColorToContainer(hatContainer, newCol);
-    void OnBeardColorChanged(Color oldCol, Color newCol) => ApplyColorToContainer(beardContainer, newCol);
+    void OnBeardColorChanged(Color oldCol, Color newCol)
+    {
+        ApplyColorToContainer(beardContainer, newCol);
+        if (bodyHairModel != null) ApplyColor(bodyHairModel.GetComponent<Renderer>(), newCol);
+    }
     void OnBrowColorChanged(Color oldCol, Color newCol) => ApplyColorToContainer(browContainer, newCol);
 
     // --- Допоміжні методи ---
@@ -126,5 +132,24 @@ public class NetworkPlayerCustomization : NetworkBehaviour
         OnHatColorChanged(Color.white, hatColor);
         OnBeardColorChanged(Color.black, beardColor);
         OnBrowColorChanged(Color.black, browColor);
+    }
+
+    // --- НОВЕ: Команди для оновлення в реальному часі ---
+    [Command]
+    public void CmdUpdateItem(string type, int index)
+    {
+        if (type == "Hat") hatIndex = index;
+        else if (type == "Beard") beardIndex = index;
+        else if (type == "Brow") browIndex = index;
+    }
+
+    [Command]
+    public void CmdUpdateColor(string type, Color c)
+    {
+        if (type == "Skin") skinColor = c;
+        else if (type == "Pants") pantsColor = c;
+        else if (type == "HatColor") hatColor = c;
+        else if (type == "BeardColor") beardColor = c;
+        else if (type == "BrowColor") browColor = c;
     }
 }

@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using Mirror;
 using Steamworks;
+using UnityEngine.EventSystems;
+using System;
 
 public class SteamLobby : MonoBehaviour
 {
@@ -12,6 +14,10 @@ public class SteamLobby : MonoBehaviour
     protected Callback<LobbyCreated_t> lobbyCreated;
     protected Callback<GameLobbyJoinRequested_t> gameLobbyJoinRequested;
     protected Callback<LobbyEnter_t> lobbyEntered;
+    protected Callback<GameOverlayActivated_t>  gameOverlayActivated; // Для відстеження, коли оверлей відкривається
+
+    
+    public GameObject blockageOverlay; // UI елемент, який блокує інтерфейс, коли оверлей відкритий
 
     private const string HostAddressKey = "HostAddress";
 
@@ -29,9 +35,6 @@ public class SteamLobby : MonoBehaviour
         {
             // Для нових версій Unity (2023+):
             menuManager = FindFirstObjectByType<MenuManager>();
-
-            // Якщо у вас старіша Unity, використовуйте:
-            // menuManager = FindObjectOfType<MenuManager>();
         }
 
         // Перевірка, чи ми дійсно все знайшли
@@ -43,6 +46,7 @@ public class SteamLobby : MonoBehaviour
         lobbyCreated = Callback<LobbyCreated_t>.Create(OnLobbyCreated);
         gameLobbyJoinRequested = Callback<GameLobbyJoinRequested_t>.Create(OnGameLobbyJoinRequested);
         lobbyEntered = Callback<LobbyEnter_t>.Create(OnLobbyEntered);
+        gameOverlayActivated = Callback<GameOverlayActivated_t>.Create(OnGameOverlayActivated);
     }
 
     // 1. Створення лобі (Викликається з кнопки "Host Game" в MenuManager)
@@ -97,4 +101,22 @@ public class SteamLobby : MonoBehaviour
         // Якщо це клієнт (друг), він теж переходить в лобі візуально
         menuManager.GoToLobby();
     }
+
+    private void OnGameOverlayActivated(GameOverlayActivated_t pCallback)
+    {
+
+        if (pCallback.m_bActive != 0)
+        {
+            // Оверлей відкритий
+            blockageOverlay.SetActive(true); // Вимикаємо EventSystem, щоб не було конфліктів з оверлеєм
+            Debug.Log("Steam Overlay відкритий, EventSystem вимкнено.");
+        }
+        else
+        {
+            // Оверлей закритий
+            blockageOverlay.SetActive(false); // Вмикаємо EventSystem назад
+            Debug.Log("Steam Overlay закритий, EventSystem увімкнено.");
+        }
+    }
+
 }
