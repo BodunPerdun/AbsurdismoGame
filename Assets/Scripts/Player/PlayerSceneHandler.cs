@@ -15,6 +15,10 @@ public class PlayerSceneHandler : NetworkBehaviour
     public GameObject[] lobbyVisuals;
     public GameObject[] gameVisuals;
 
+    [Header("Visibility Settings")]
+    [Tooltip("Перетягни сюди всі Renderer'и тіла (SkinnedMeshRenderer або MeshRenderer), які треба сховати від себе")]
+    public GameObject[] bodyRenderers;
+
     private AudioListener _audioListener;
     public Animator animator;
 
@@ -114,6 +118,22 @@ public class PlayerSceneHandler : NetworkBehaviour
             if (_audioListener != null) _audioListener.enabled = true;
             if (CameraManager.Instance != null)
                 CameraManager.Instance.RegisterCamera(playerCameraObject.GetComponent<CinemachineCamera>());
+        }
+
+        // Для локального гравця ми хочемо сховати його тіло, але залишити тінь. Це робиться через налаштування рендерингу.
+        // Проходимося по всіх мешах тіла і кажемо їм відкидати тільки тінь
+        foreach (GameObject rendObject in bodyRenderers)
+        {
+            Renderer[] renderers = rendObject.GetComponentsInChildren<Renderer>(true);
+
+            foreach (var rend in renderers)
+            {
+                if (rend != null)
+                {
+                    // Меш не буде малюватися в камері, але тінь від нього залишиться
+                    rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+                }
+            }
         }
 
         ToggleVisuals(lobbyVisuals, false);

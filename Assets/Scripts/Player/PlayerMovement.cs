@@ -9,7 +9,7 @@ public class PlayerMovement : NetworkBehaviour
 {
     private CharacterController ch;
     private PlayerHealth health;
-    private Animator animator;
+    [SerializeField] private Animator animator;
 
     // Прибрали MouseRotation, бо він для top-down
     public PlayerControls Controls { get; private set; }
@@ -44,7 +44,7 @@ public class PlayerMovement : NetworkBehaviour
     {
         ch = GetComponent<CharacterController>();
         health = GetComponent<PlayerHealth>();
-        animator = GetComponent<Animator>();
+        if (animator == null) animator = GetComponent<Animator>();
         Controls = new PlayerControls();
     }
 
@@ -70,33 +70,37 @@ public class PlayerMovement : NetworkBehaviour
         }
     }
 
-    //public override void OnStartLocalPlayer()
-    //{
-    //    // 1. Вмикаємо камеру ТІЛЬКИ якщо це наш гравець
-    //    if (playerCameraObject != null)
-    //    {
-    //        playerCameraObject.SetActive(true);
-    //    }
 
-    //    // Курсор
-    //    Cursor.lockState = CursorLockMode.Locked;
-    //    Cursor.visible = false;
 
-    //    // Реєструємося в менеджері
-    //    if (CameraManager.Instance != null && playerCameraObject != null)
-    //    {
-    //        CameraManager.Instance.RegisterCamera(playerCameraObject.GetComponent<CinemachineCamera>());
-    //    }
-    //}
+    /*
+    public override void OnStartLocalPlayer()
+    {
+        // 1. Вмикаємо камеру ТІЛЬКИ якщо це наш гравець
+        if (playerCameraObject != null)
+        {
+            playerCameraObject.SetActive(true);
+        }
 
-    //void Start()
-    //{
-    //    // Для безпеки: якщо це НЕ мій гравець, вимикаємо камеру примусово
-    //    if (!isOwned && playerCameraObject != null)
-    //    {
-    //        playerCameraObject.SetActive(false);
-    //    }
-    //}
+        // Курсор
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        // Реєструємося в менеджері
+        if (CameraManager.Instance != null && playerCameraObject != null)
+        {
+            CameraManager.Instance.RegisterCamera(playerCameraObject.GetComponent<CinemachineCamera>());
+        }
+    }
+
+    void Start()
+    {
+        // Для безпеки: якщо це НЕ мій гравець, вимикаємо камеру примусово
+        if (!isOwned && playerCameraObject != null)
+        {
+            playerCameraObject.SetActive(false);
+        }
+    
+    */
 
     void OnEnable() => Controls.Player.Enable();
     void OnDisable() => Controls.Player.Disable();

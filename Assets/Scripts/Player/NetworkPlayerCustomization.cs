@@ -90,7 +90,11 @@ public class NetworkPlayerCustomization : NetworkBehaviour
         ApplyColorToContainer(beardContainer, newCol);
         if (bodyHairModel != null) ApplyColor(bodyHairModel.GetComponent<Renderer>(), newCol);
     }
-    void OnBrowColorChanged(Color oldCol, Color newCol) => ApplyColorToContainer(browContainer, newCol);
+    void OnBrowColorChanged(Color oldCol, Color newCol)
+    {
+        ApplyColor(browContainer.GetComponent<Renderer>(), newCol);
+        ApplyColorToContainer(browContainer, newCol);
+    }
 
     // --- Допоміжні методи ---
     private void ToggleModel(Transform container, int index)
@@ -127,11 +131,21 @@ public class NetworkPlayerCustomization : NetworkBehaviour
         OnHatChanged(-1, hatIndex);
         OnBeardChanged(-1, beardIndex);
         OnBrowChanged(-1, browIndex);
+
+        /*
         OnSkinColorChanged(Color.white, skinColor);
         OnPantsColorChanged(Color.gray, pantsColor);
         OnHatColorChanged(Color.white, hatColor);
         OnBeardColorChanged(Color.black, beardColor);
         OnBrowColorChanged(Color.black, browColor);
+        */
+        Color clearColor = new Color(0, 0, 0, 0);
+
+        OnSkinColorChanged(clearColor, skinColor);
+        OnPantsColorChanged(clearColor, pantsColor);
+        OnHatColorChanged(clearColor, hatColor);
+        OnBeardColorChanged(clearColor, beardColor);
+        OnBrowColorChanged(clearColor, browColor);
     }
 
     // --- НОВЕ: Команди для оновлення в реальному часі ---

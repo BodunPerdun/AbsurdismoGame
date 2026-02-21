@@ -10,17 +10,18 @@ TagManager:
   - Bullet
   - FPSCamera
   - CombatCamera
+  - Draggable
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Player
   - Water
   - UI
   - groundLayerMask
   - GlobalVolume
-  - 
-  - 
+  - Draggable
+  - RagdollBones
   - 
   - 
   - 
