@@ -109,8 +109,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f52cc267e43b6a47bf8dc16139b17e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SteamLobby
-  networkManager: {fileID: 4338944594567591429}
+  menuManager: {fileID: 0}
   blockageOverlay: {fileID: 0}
+  networkManager: {fileID: 4338944594567591429}
 --- !u!114 &7844357723175087881
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -135,7 +136,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6e55fca1f4e4844593a3dd65a3ecb39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: FizzySteamworks::Mirror.FizzySteam.FizzySteamworks
-  Channels: 0200000001000000
+  Channels: 020000000100000000000000
   Timeout: 25
   AllowSteamRelay: 1
   UseNextGenSteamNetworking: 1

@@ -1,9 +1,11 @@
 using DG.Tweening;
-using Mirror; // Додано для Single Player логіки
+using Mirror;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using Steamworks;
+using System;
 
 public class MenuManager : MonoBehaviour
 {
@@ -14,6 +16,9 @@ public class MenuManager : MonoBehaviour
     public CustomizationManager cust;
     public CinemachineBrain brain;
     public CinemachineCamera mainCam, secondCam, loudautCam, lobbyCam;
+
+    [Header("Blockage Overlay")]
+    public GameObject blockageOverlayMenuReference;
 
     [Header("Інтерфейс Меню")]
     public Animator doorAnim;
@@ -28,6 +33,7 @@ public class MenuManager : MonoBehaviour
     [Header("Кнопки Лобі")]
     public Button hostGameButton; // щоб ховати її від клієнтів, які приєднуються до лобі
     public Button startGameButton; // Кнопка "Start Game", щоб ховати її від клієнтів
+    public Button disconnectButton; // Кнопка "Back to Main Menu" в лобі
     public Button inviteButton;
 
     [Header("Вкладки")]
@@ -54,6 +60,22 @@ public class MenuManager : MonoBehaviour
 
     void Start()
     {
+        if (NetworkManager.singleton != null)
+        {
+            steamLobby = NetworkManager.singleton.GetComponent<SteamLobby>();
+        }
+
+        // 2. Віддаємо йому нові посилання
+        if (steamLobby != null)
+        {
+            steamLobby.menuManager = this;
+            steamLobby.blockageOverlay = blockageOverlayMenuReference;
+        }
+        else
+        {
+            Debug.LogError("MenuManager: Не вдалося знайти SteamLobby на NetworkManager.singleton!");
+        }
+
         // Ініціалізація UI
         customizationPanel.alpha = 0;
         customizationPanel.gameObject.SetActive(false);
@@ -73,6 +95,12 @@ public class MenuManager : MonoBehaviour
 
         LoadCharacterPrefs();
         SwitchTab("Hat");
+    }
+    private void OnDestroy()
+    {
+        // Зупиняємо всі запущені анімації та затримки DOTween!
+        // Це виправить ті самі жовті помилки в консолі.
+        DOTween.KillAll();
     }
 
     // --- ЛОГІКА КНОПОК (Прив'яжіть це в Inspector) ---
@@ -115,6 +143,22 @@ public class MenuManager : MonoBehaviour
         Application.Quit();
     }
 
+    public void UI_BackToMainMenu()
+    {
+        // Якщо ми в лобі, то викликаємо вихід. 
+        // Метод LeaveLobby сам перекине нас у головне меню!
+        if (isLobby)
+        {
+            steamLobby.LeaveLobby();
+            isLobby = false;
+        }
+        else
+        {
+            // Якщо ми не в лобі (просто в налаштуваннях), повертаємося візуально
+            GoToStartMenu();
+        }
+    }
+
     // --------------------------------------------------
 
     public void GoToStartMenu()
@@ -134,7 +178,7 @@ public class MenuManager : MonoBehaviour
             menuButtons.gameObject.SetActive(true);
             menuButtons.DOFade(1, 1.5f);
             menuButtons.interactable = true; // Вмикаємо взаємодію
-        });
+        }).SetLink(gameObject);;
     }
 
     public void GoToLoadout()
@@ -152,7 +196,7 @@ public class MenuManager : MonoBehaviour
                 customizationPanel.gameObject.SetActive(true);
                 customizationPanel.DOFade(1, 0.5f);
             }
-        });
+        }).SetLink(gameObject);
     }
 
     public void BackToSecondCam()
@@ -172,7 +216,7 @@ public class MenuManager : MonoBehaviour
                     menuButtons.DOFade(1, 0.5f);
                     menuButtons.interactable = true;
                 }
-            });
+            }).SetLink(gameObject);
         }
 
         if (isLobby)
@@ -189,7 +233,7 @@ public class MenuManager : MonoBehaviour
                     lobbyButtons.DOFade(1, 0.5f);
                     lobbyButtons.interactable = true;
                 }
-            });
+            }).SetLink(gameObject);
         }
     }
 
@@ -219,7 +263,7 @@ public class MenuManager : MonoBehaviour
                 // Якщо ми хост - показуємо
                 if (startGameButton != null) startGameButton.gameObject.SetActive(true);
             }
-        });
+        }).SetLink(gameObject);
     }
 
     private void SetCameras(int m, int s, int l, int lobby)
@@ -336,5 +380,11 @@ public class MenuManager : MonoBehaviour
             // Або якщо хочеш повністю ховати її, а не робити сірою:
             // hostGameButton.gameObject.SetActive(!NetworkClient.active);
         }
+
+        if(disconnectButton != null)
+        {
+            disconnectButton.interactable = NetworkClient.active; // Вмикаємо кнопку "Back to Main Menu" тільки якщо ми підключені до лобі
+        }
     }
+
 }

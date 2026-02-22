@@ -6,8 +6,11 @@ using System;
 
 public class SteamLobby : MonoBehaviour
 {
+    public static SteamLobby instance;
+
     [Header("References")]
-    private MenuManager menuManager; // Посилання на ваш скрипт меню
+    public MenuManager menuManager; // Посилання на ваш скрипт меню
+    public GameObject blockageOverlay; // UI елемент, який блокує інтерфейс, коли оверлей відкритий
     public NetworkManager networkManager;
 
     // Callbacks
@@ -17,9 +20,27 @@ public class SteamLobby : MonoBehaviour
     protected Callback<GameOverlayActivated_t>  gameOverlayActivated; // Для відстеження, коли оверлей відкривається
 
     
-    public GameObject blockageOverlay; // UI елемент, який блокує інтерфейс, коли оверлей відкритий
+
+    private CSteamID currentLobbyID;
 
     private const string HostAddressKey = "HostAddress";
+    private const string MainLobbyScene = "LobbyScene";
+    private const string LevelScene = "SampleScene";
+
+    // Ініціалізація сінглтона
+    private void Awake()
+    {
+        // Якщо інстанс ще не існує — робимо цим скриптом
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else if (instance != this)
+        {
+            // Якщо раптом з'явився дублікат — знищуємо його
+            Destroy(gameObject);
+        }
+    }
 
     private void Start()
     {
@@ -29,17 +50,9 @@ public class SteamLobby : MonoBehaviour
             networkManager = GetComponent<NetworkManager>();
         }
 
-        // 2. Знаходимо MenuManager (він на іншому об'єкті в сцені)
-        // GetComponent тут не підходить, треба шукати по всій сцені
-        if (menuManager == null)
-        {
-            // Для нових версій Unity (2023+):
-            menuManager = FindFirstObjectByType<MenuManager>();
-        }
-
-        // Перевірка, чи ми дійсно все знайшли
-        if (menuManager == null) Debug.LogError("SteamLobby: Не знайдено MenuManager на сцені!");
-        if (networkManager == null) Debug.LogError("SteamLobby: Не знайдено NetworkManager!");
+        //// Перевірка, чи ми дійсно все знайшли
+        //if (menuManager == null) Debug.LogError("SteamLobby: Не знайдено MenuManager на сцені!");
+        //if (networkManager == null) Debug.LogError("SteamLobby: Не знайдено NetworkManager!");
 
         if (!SteamManager.Initialized) return;
 
@@ -59,7 +72,7 @@ public class SteamLobby : MonoBehaviour
     public void StartGame()
     {
         // Переконайтеся, що сцена додана в Build Settings
-        networkManager.ServerChangeScene("SampleScene");
+        networkManager.ServerChangeScene(LevelScene);
     }
 
     // 3. Відкриття оверлею друзів (Кнопка "Invite Friends")
@@ -77,11 +90,12 @@ public class SteamLobby : MonoBehaviour
         {
             Debug.Log("Лобі створено!");
             networkManager.StartHost();
+            // Зберігаємо ID нашого лобі
+            currentLobbyID = new CSteamID(result.m_ulSteamIDLobby);
+            SteamMatchmaking.SetLobbyData(currentLobbyID, HostAddressKey, SteamUser.GetSteamID().ToString());
 
-            SteamMatchmaking.SetLobbyData(new CSteamID(result.m_ulSteamIDLobby), HostAddressKey, SteamUser.GetSteamID().ToString());
-
-            // ВАЖЛИВО: Кажемо меню переїхати камерою в лобі
-            menuManager.GoToLobby();
+            // Кажемо меню переїхати камерою в лобі
+            if (menuManager != null) menuManager.GoToLobby();
         }
     }
 
@@ -92,14 +106,16 @@ public class SteamLobby : MonoBehaviour
 
     private void OnLobbyEntered(LobbyEnter_t result)
     {
+        currentLobbyID = new CSteamID(result.m_ulSteamIDLobby);
+
         if (NetworkServer.active) return; // Якщо ми хост, ми вже все зробили
 
-        string hostAddress = SteamMatchmaking.GetLobbyData(new CSteamID(result.m_ulSteamIDLobby), HostAddressKey);
+        string hostAddress = SteamMatchmaking.GetLobbyData(currentLobbyID, HostAddressKey);
         networkManager.networkAddress = hostAddress;
         networkManager.StartClient();
 
         // Якщо це клієнт (друг), він теж переходить в лобі візуально
-        menuManager.GoToLobby();
+        if (menuManager != null) menuManager.GoToLobby();
     }
 
     private void OnGameOverlayActivated(GameOverlayActivated_t pCallback)
@@ -119,4 +135,26 @@ public class SteamLobby : MonoBehaviour
         }
     }
 
+    public void LeaveLobby()
+    {
+        // 1. Спочатку виходимо з лобі Steam (якщо ми взагалі в ньому є)
+        if (currentLobbyID.IsValid())
+        {
+            SteamMatchmaking.LeaveLobby(currentLobbyID);
+            currentLobbyID = CSteamID.Nil; // Очищаємо змінну
+            Debug.Log("Вийшли зі Steam-лобі");
+        }
+
+        // 2. Відключаємо Mirror
+        if (NetworkServer.active && NetworkClient.isConnected)
+        {
+            // Якщо ми Хост (Сервер + Клієнт)
+            networkManager.StopHost();
+        }
+        else if (NetworkClient.isConnected)
+        {
+            // Якщо ми просто Клієнт
+            networkManager.StopClient();
+        }
+    }
 }

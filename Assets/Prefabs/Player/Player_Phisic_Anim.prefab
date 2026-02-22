@@ -8752,6 +8752,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4373411446690214323}
+  - component: {fileID: 7967004260266404322}
   - component: {fileID: 4751120983294028731}
   - component: {fileID: 4066168064444425135}
   - component: {fileID: 2094698891493393761}
@@ -8793,6 +8794,21 @@ Transform:
   - {fileID: 5920111681461394889}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7967004260266404322
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7894978892217423982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3a49a1ff3e6e99438490c4066837115, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SteamVoiceChat
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
 --- !u!114 &4751120983294028731
 MonoBehaviour:
   m_ObjectHideFlags: 0
