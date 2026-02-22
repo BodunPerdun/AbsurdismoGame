@@ -136,6 +136,7 @@ public class PlayerSceneHandler : NetworkBehaviour
             }
         }
 
+
         ToggleVisuals(lobbyVisuals, false);
         ToggleVisuals(gameVisuals, true);
     }

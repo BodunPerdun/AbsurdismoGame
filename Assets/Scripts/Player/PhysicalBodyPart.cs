@@ -76,4 +76,21 @@ public class PhysicalBodyPart : NetworkBehaviour // 2. Змінюємо MonoBeha
     {
         _syncedPitch = newPitch;
     }
+
+    // Додайте цей метод у PhysicalBodyPart.cs
+    public void ResetPose()
+    {
+        if (_target == null) return;
+
+        // Примусово повертаємо фізичну кістку в координати анімованої
+        transform.position = _target.position;
+        transform.rotation = _target.rotation;
+
+        // Скидаємо інерцію, щоб кістка не полетіла далі після телепортації
+        if (TryGetComponent<Rigidbody>(out Rigidbody rb))
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+    }
 }

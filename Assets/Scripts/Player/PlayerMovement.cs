@@ -1,4 +1,5 @@
 ﻿using Mirror;
+using Mirror.Examples.Common;
 using System.Collections;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -25,6 +26,9 @@ public class PlayerMovement : NetworkBehaviour
     private float xRotation = 0f;
     public GameObject playerCameraObject;
     public CinemachineCamera thirdPersonCamera;
+
+    [Tooltip("Шари, в які МОЖНА цілитися (все, крім гравця)")]
+    [SerializeField] private LayerMask aimLayerMask = ~0; // ~0 означає "всі шари" за замовчуванням
 
     [Header("Dash Settings")]
     public float dashSpeed = 25f;
@@ -191,7 +195,7 @@ public class PlayerMovement : NetworkBehaviour
             Ray ray = new Ray(cameraRoot.position, cameraRoot.forward);
             Vector3 targetPoint;
 
-            if (Physics.Raycast(ray, out RaycastHit hit))
+            if (Physics.Raycast(ray, out RaycastHit hit, 1000f, aimLayerMask))
             {
                 targetPoint = hit.point;
             }
@@ -200,10 +204,10 @@ public class PlayerMovement : NetworkBehaviour
                 targetPoint = ray.GetPoint(100f);
             }
 
-            // DEBUG: Малюємо лінію погляду (Зелена)
+            // Малюємо лінію погляду (Зелена)
             Debug.DrawLine(cameraRoot.position, targetPoint, Color.green, 2f);
 
-            // 2. Передаємо в зброю ТОЧКУ, а не напрямок. 
+            // Передаємо в зброю ТОЧКУ, а не напрямок. 
             // Нехай зброя сама вирішує, як туди стріляти від дула.
             weapons.FireAtTarget(targetPoint);
         }

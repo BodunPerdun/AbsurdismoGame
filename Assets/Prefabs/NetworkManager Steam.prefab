@@ -74,9 +74,9 @@ MonoBehaviour:
   disconnectInactiveConnections: 0
   disconnectInactiveTimeout: 60
   authenticator: {fileID: 0}
-  playerPrefab: {fileID: 6017416006191049545, guid: 41a11d4f09ec23d4d8452fc3c4bb42ad, type: 3}
+  playerPrefab: {fileID: 7894978892217423982, guid: d98fae8c4deefb64c87bae050c2e4673, type: 3}
   autoCreatePlayer: 1
-  playerSpawnMethod: 1
+  playerSpawnMethod: 0
   spawnPrefabs:
   - {fileID: 5338132823101386166, guid: 0a960e93d4ec57e4b9a10f65735766d6, type: 3}
   - {fileID: 7009841015172631010, guid: 4afb25d0c05667b4586133cbd8c68210, type: 3}
@@ -110,6 +110,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SteamLobby
   networkManager: {fileID: 4338944594567591429}
+  blockageOverlay: {fileID: 0}
 --- !u!114 &7844357723175087881
 MonoBehaviour:
   m_ObjectHideFlags: 0

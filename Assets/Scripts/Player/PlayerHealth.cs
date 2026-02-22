@@ -14,15 +14,16 @@ public class PlayerHealth : NetworkBehaviour
 
     // Посилання на компоненти, які треба вимикати при смерті
     [SerializeField] private CharacterController ch;
-    [SerializeField] private Renderer[] renderers; // Призначити в інспекторі або знайти в Awake
     [SerializeField] private NetworkTransformReliable networkTransform;
 
     public CinemachineCamera mainCamera;
     public CinemachineCamera thirdPersonCamera;
 
     // Для ragdoll при смерті буде гравець падати
-    private List<Rigidbody> _rigidbodies;
-    private Animator animator;
+    private PhysicalBodyPart[] _bodyParts;
+    [SerializeField] private Rigidbody _hipsRigidbody;
+    [SerializeField] private ConfigurableJoint _hipsConfigurableJoin;
+    [SerializeField] private Animator animator;
 
     void Awake()
     {
@@ -31,13 +32,8 @@ public class PlayerHealth : NetworkBehaviour
         // Знаходимо NetworkTransform, якщо не задано в інспекторі
         if (networkTransform == null) networkTransform = GetComponent<NetworkTransformReliable>();
 
-        // АВТОМАТИЧНИЙ ПОШУК КОМПОНЕНТІВ
-        // Знаходимо всі меші (тіло, зброя, одяг) у цьому об'єкті та дочірніх
-        renderers = GetComponentsInChildren<Renderer>();
-
         // Ініціалізуємо список Rigidbody для ragdoll та анімації
-        _rigidbodies = new List<Rigidbody>(GetComponentsInChildren<Rigidbody>());
-        animator = GetComponent<Animator>();
+        _bodyParts = GetComponentsInChildren<PhysicalBodyPart>();
     }
 
     public override void OnStartServer()
@@ -64,25 +60,32 @@ public class PlayerHealth : NetworkBehaviour
 
     private void SetRagdollState(bool active)
     {
-        // 1. Вмикаємо/вимикаємо аніматор (коли активний ragdoll - аніматор вимкнений)
+        // Вмикаємо/вимикаємо аніматор (коли активний ragdoll - аніматор вимкнений)
         if (animator) animator.enabled = !active;
 
-        // 2. Вмикаємо/вимикаємо CharacterController
+        // Вмикаємо/вимикаємо CharacterController
         if (ch) ch.enabled = !active;
 
-        // 3. ВАЖЛИВО: Вимикаємо NetworkTransform, щоб він не заважав фізиці падати
+        // Вимикаємо NetworkTransform, щоб він не заважав фізиці падати
         if (networkTransform) networkTransform.enabled = !active;
 
-        // 4. Налаштовуємо фізику кісток
-        foreach (var rb in _rigidbodies)
-        {
-            rb.isKinematic = !active; // Якщо ragdoll активний, кінематика вимкнена (падає)
-        }
+        _hipsRigidbody.isKinematic = !active; // Хіпс має бути кінематичним, щоб не провалюватися крізь землю при активації ragdoll
+        
+        // Отримуємо копію поточних налаштувань суглоба
+        JointDrive drive = _hipsConfigurableJoin.slerpDrive;
 
-        //foreach (var col in _colliders)
-        //{
-        //    col.enabled = active; // Вмикаємо коллайдери кісток при смерті
-        //}
+        // Змінюємо значення в нашій копії
+        ConfigurableJointMotion targetMotion = active ? ConfigurableJointMotion.Free : ConfigurableJointMotion.Locked;
+
+        _hipsConfigurableJoin.xMotion = targetMotion;
+        _hipsConfigurableJoin.yMotion = targetMotion;
+        _hipsConfigurableJoin.zMotion = targetMotion;
+
+        drive.positionSpring = active ? 1000 : 100000;
+        drive.positionDamper = active ? 0 : 10000;
+
+        // Повертаємо оновлену структуру назад у ConfigurableJoint
+        _hipsConfigurableJoin.slerpDrive = drive;
     }
     //========================================================================================
 
@@ -90,12 +93,7 @@ public class PlayerHealth : NetworkBehaviour
     private void RpcOnDeath()
     {
         isDead = true;
-        /*
-        // Вимкнути візуал та рух
-        if (ch) ch.enabled = false;
-        foreach (var r in renderers) r.enabled = false;
-        */
-
+ 
         // Вимикаємо коллайдери та рендерери, вмикаємо фізику для ragdoll
         SetRagdollState(isDead);
 
@@ -140,14 +138,15 @@ public class PlayerHealth : NetworkBehaviour
     private void RpcOnRespawn(Vector3 pos)
     {
         transform.position = pos;
-        /*
-            if (ch) ch.enabled = true;
-            foreach (var r in renderers) r.enabled = true;
-        */
+
         isDead = false;
 
         SetRagdollState(isDead);
 
+        foreach (var part in _bodyParts)
+        {
+            part.ResetPose();
+        }
 
         // 1. Спочатку реєструємо камеру для інших спостерігачів.
         // Завдяки фіксу в SpectatorManager вона додасться ВИМКНЕНОЮ.

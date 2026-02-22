@@ -1,8 +1,7 @@
-﻿using System;
-using Unity.VisualScripting;
-using UnityEngine;
+﻿using UnityEngine;
+using Mirror;
 
-public class DragNDrop : MonoBehaviour
+public class DragNDrop : NetworkBehaviour // Змінено на NetworkBehaviour
 {
     private const string TagOfDraggableItems = "Draggable";
     private const float speedOfDrag = 25f;
@@ -10,17 +9,16 @@ public class DragNDrop : MonoBehaviour
     [SerializeField] private Transform _playerCamera;
     [SerializeField] private LayerMask _defaultLayerMask;
     [SerializeField] private GameObject _positionOfPickUp;
-    private GameObject _draggableObject; 
-    private Rigidbody _rbOfDraggableObject;
 
-    private Outline _lastOutlineObject; // Зберігаємо останній об'єкт з підсвічуванням
+    private GameObject _draggableObject;
+    private Rigidbody _rbOfDraggableObject;
+    private Outline _lastOutlineObject;
 
     void Update()
     {
-        // Візуалізація променя для налагодження
-        //Debug.DrawRay(_playerCamera.position, _playerCamera.forward * MaxRayDistance, Color.red);
+        // Виконуємо код тільки для свого гравця
+        if (!isLocalPlayer) return;
 
-        // 1. Кидаємо промінь тільки якщо ми ще нічого не тримаємо
         if (_draggableObject == null)
         {
             RaycastHit hit;
@@ -28,17 +26,17 @@ public class DragNDrop : MonoBehaviour
             {
                 if (hit.collider.CompareTag(TagOfDraggableItems))
                 {
-                    if (_lastOutlineObject != null)
+                    Outline currentOutline = hit.transform.GetComponent<Outline>();
+                    if (_lastOutlineObject != currentOutline)
                     {
-                        _lastOutlineObject.enabled = false; // Вимикаємо підсвічування для попереднього об'єкта
+                        DisableOutline();
+                        _lastOutlineObject = currentOutline;
+                        if (_lastOutlineObject != null) _lastOutlineObject.enabled = true;
                     }
-
-                    _lastOutlineObject = hit.transform.GetComponent<Outline>();
-                    _lastOutlineObject.enabled = true;
 
                     if (Input.GetMouseButtonDown(0))
                     {
-                        PrepareForDrag(hit);
+                        PrepareForDrag(hit.transform.gameObject);
                         DisableOutline();
                     }
                 }
@@ -53,53 +51,91 @@ public class DragNDrop : MonoBehaviour
             }
         }
 
-
         if (Input.GetMouseButtonUp(0) && _draggableObject != null)
         {
             Drop();
         }
     }
+
     private void DisableOutline()
     {
         if (_lastOutlineObject != null)
         {
             _lastOutlineObject.enabled = false;
-            _lastOutlineObject = null; // Очищуємо посилання
+            _lastOutlineObject = null;
         }
     }
 
     private void FixedUpdate()
     {
-        // 3. Якщо об'єкт вибрано — рухаємо його (GetMouseButton - поки тримаємо)
-        if (_draggableObject != null)
+        if (!isLocalPlayer) return;
+
+        if (_draggableObject != null && _rbOfDraggableObject != null)
         {
             Drag();
         }
-
     }
 
     private void Drag()
     {
-        // Розраховуємо дистанцію до цілі
         Vector3 dragDirection = _positionOfPickUp.transform.position - _draggableObject.transform.position;
-
-        // Встановлюємо швидкість у напрямку цілі
         _rbOfDraggableObject.linearVelocity = dragDirection * speedOfDrag;
+    }
+
+    private void PrepareForDrag(GameObject hitObject)
+    {
+        _draggableObject = hitObject;
+        _rbOfDraggableObject = _draggableObject.GetComponent<Rigidbody>();
+
+        // Просимо сервер дати нам права на об'єкт і вимкнути йому гравітацію для всіх
+        CmdPickup(_draggableObject);
     }
 
     private void Drop()
     {
-        // Повертаємо гравітацію та очищуємо посилання
-        _rbOfDraggableObject.GetComponent<DraggableItems>().PrepareForDrop();
-        _draggableObject = null;
-        _rbOfDraggableObject = null;
+        if (_draggableObject != null)
+        {
+            // Просимо сервер забрати права і ввімкнути гравітацію
+            CmdDrop(_draggableObject);
+
+            _draggableObject = null;
+            _rbOfDraggableObject = null;
+        }
     }
-    private void PrepareForDrag(RaycastHit hit)
+
+    // --- ЛОГІКА СЕРВЕРА ---
+
+    // [Command] виконується ТІЛЬКИ на сервері, хоча викликається з клієнта
+    [Command]
+    private void CmdPickup(GameObject targetObject)
     {
-        _draggableObject = hit.transform.gameObject;
-        _rbOfDraggableObject = _draggableObject.GetComponent<Rigidbody>();
+        NetworkIdentity netId = targetObject.GetComponent<NetworkIdentity>();
 
-        _draggableObject.GetComponent<DraggableItems>().PrepareForDrag();
+        // Якщо предмет вже хтось тримає, забираємо в нього права
+        if (netId.connectionToClient != null)
+        {
+            netId.RemoveClientAuthority();
+        }
 
+        // Даємо права клієнту, який викликав команду
+        netId.AssignClientAuthority(connectionToClient);
+
+        // Кажемо всім клієнтам вимкнути гравітацію та змінити шар
+        targetObject.GetComponent<DraggableItems>().RpcPrepareForDrag();
+    }
+
+    [Command]
+    private void CmdDrop(GameObject targetObject)
+    {
+        NetworkIdentity netId = targetObject.GetComponent<NetworkIdentity>();
+
+        // Кажемо всім клієнтам ввімкнути гравітацію
+        targetObject.GetComponent<DraggableItems>().RpcPrepareForDrop();
+
+        // Забираємо права у клієнта, бо він відпустив предмет
+        if (netId.connectionToClient == connectionToClient)
+        {
+            netId.RemoveClientAuthority();
+        }
     }
 }
