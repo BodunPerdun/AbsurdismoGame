@@ -69,24 +69,24 @@ public class SteamVoiceChat : NetworkBehaviour
         // Сервер розсилає всім КРІМ того, хто говорить (includeOwner = false)
         RpcPlayVoice(compressedVoice);
     }
-
     [ClientRpc(channel = 1, includeOwner = false)]
     void RpcPlayVoice(byte[] compressedVoice)
     {
-        uint optimalRate = SteamUser.GetVoiceOptimalSampleRate();
-        // Створюємо буфер для розпакованого звуку (Steam використовує 16-bit PCM)
-        byte[] uncompressedDestBuffer = new byte[22050 * 2];
+        // 1. БЕРЕМО ЧАСТОТУ UNITY, А НЕ STEAM!
+        uint unitySampleRate = (uint)AudioSettings.outputSampleRate;
+
+        // 2. Збільшуємо розмір буфера, бо розпакований звук на 48000 Гц важить більше
+        byte[] uncompressedDestBuffer = new byte[81920]; // Близько 80 КБ вистачить з запасом
         uint bytesWritten;
 
-        // Розпаковуємо дані
+        // 3. Передаємо unitySampleRate замість optimalRate
         EVoiceResult res = SteamUser.DecompressVoice(
             compressedVoice, (uint)compressedVoice.Length,
             uncompressedDestBuffer, (uint)uncompressedDestBuffer.Length,
-            out bytesWritten, optimalRate);
+            out bytesWritten, unitySampleRate);
 
         if (res == EVoiceResult.k_EVoiceResultOK && bytesWritten > 0)
         {
-            // Конвертуємо байти (16-bit PCM) у float (від -1.0 до 1.0) для Unity
             float[] floatArray = new float[bytesWritten / 2];
             for (int i = 0; i < floatArray.Length; i++)
             {
@@ -94,7 +94,6 @@ public class SteamVoiceChat : NetworkBehaviour
                 floatArray[i] = val / 32768f;
             }
 
-            // Додаємо звук у чергу на відтворення (використовуємо lock для безпеки потоків)
             lock (audioBuffer)
             {
                 foreach (float f in floatArray)
