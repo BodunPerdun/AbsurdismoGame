@@ -14,12 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.ProBuilder.Editor::UnityEditor.ProBuilder.MaterialPalette
   array:
   - {fileID: 2100000, guid: c22777d6e868e4f2fb421913386b154e, type: 2}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 372ce0f1493fcde4eb687ed0af25dd37, type: 2}
+  - {fileID: 2100000, guid: e92431b9e4514ac419bd5382b98b6283, type: 2}
+  - {fileID: 2100000, guid: c968b65cb0fc42c47ad5ad3524a57e52, type: 2}
+  - {fileID: 2100000, guid: c9070a0a6e257da46b888bd3b2292114, type: 2}
+  - {fileID: 2100000, guid: 32bae602351edb14582b1f67acb0ec55, type: 2}
+  - {fileID: 2100000, guid: 58c4ff401da576e419867e17f78caf3a, type: 2}
+  - {fileID: 2100000, guid: 42859958f7ae8924daa3b1a12f7aa095, type: 2}
+  - {fileID: 2100000, guid: a305b3212ca64ab41b89889d4bbcc320, type: 2}
+  - {fileID: 2100000, guid: 9ad22a84119f45e4785cfa2bcc7b65a7, type: 2}
+  - {fileID: 2100000, guid: af4e19c090e185f45a676c338a3ad804, type: 2}
