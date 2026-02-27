@@ -207,7 +207,7 @@ ConfigurableJoint:
   m_SlerpDrive:
     serializedVersion: 4
     positionSpring: 5000
-    positionDamper: 100
+    positionDamper: 500
     maximumForce: 3.4028233e+38
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -1899,7 +1899,7 @@ ConfigurableJoint:
   m_SlerpDrive:
     serializedVersion: 4
     positionSpring: 5000
-    positionDamper: 100
+    positionDamper: 500
     maximumForce: 3.4028233e+38
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -2083,7 +2083,7 @@ ConfigurableJoint:
   m_SlerpDrive:
     serializedVersion: 4
     positionSpring: 5000
-    positionDamper: 100
+    positionDamper: 500
     maximumForce: 3.4028233e+38
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -2265,7 +2265,7 @@ ConfigurableJoint:
   m_SlerpDrive:
     serializedVersion: 4
     positionSpring: 5000
-    positionDamper: 100
+    positionDamper: 500
     maximumForce: 3.4028233e+38
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -3005,8 +3005,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 5000
-    positionDamper: 500
+    positionSpring: 50000
+    positionDamper: 5000
     maximumForce: 3.4028233e+38
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -3221,7 +3221,7 @@ ConfigurableJoint:
   m_SlerpDrive:
     serializedVersion: 4
     positionSpring: 5000
-    positionDamper: 100
+    positionDamper: 500
     maximumForce: 3.4028233e+38
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -4338,7 +4338,7 @@ ConfigurableJoint:
   m_SlerpDrive:
     serializedVersion: 4
     positionSpring: 5000
-    positionDamper: 100
+    positionDamper: 500
     maximumForce: 3.4028233e+38
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -6332,7 +6332,7 @@ ConfigurableJoint:
   m_SlerpDrive:
     serializedVersion: 4
     positionSpring: 5000
-    positionDamper: 100
+    positionDamper: 500
     maximumForce: 3.4028233e+38
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -6754,7 +6754,7 @@ ConfigurableJoint:
   m_SlerpDrive:
     serializedVersion: 4
     positionSpring: 5000
-    positionDamper: 100
+    positionDamper: 500
     maximumForce: 3.4028233e+38
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -8710,7 +8710,7 @@ ConfigurableJoint:
   m_SlerpDrive:
     serializedVersion: 4
     positionSpring: 5000
-    positionDamper: 100
+    positionDamper: 500
     maximumForce: 3.4028233e+38
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -9859,7 +9859,7 @@ ConfigurableJoint:
   m_SlerpDrive:
     serializedVersion: 4
     positionSpring: 5000
-    positionDamper: 100
+    positionDamper: 500
     maximumForce: 3.4028233e+38
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -10478,43 +10478,43 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.381
+      value: 0.327
       objectReference: {fileID: 0}
     - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.339
+      value: 0.409
       objectReference: {fileID: 0}
     - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.598
+      value: -0.457
       objectReference: {fileID: 0}
     - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.33404103
+      value: -0.3847953
       objectReference: {fileID: 0}
     - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.83285797
+      value: 0.8082596
       objectReference: {fileID: 0}
     - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.26021227
+      value: 0.17825814
       objectReference: {fileID: 0}
     - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.35644612
+      value: -0.40850094
       objectReference: {fileID: 0}
     - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -158.228
+      value: -151.55
       objectReference: {fileID: 0}
     - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 55.745
+      value: 65.105
       objectReference: {fileID: 0}
     - target: {fileID: 7594878523375029896, guid: 61d93758b94e6f742a0ea206414b8717, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: -406.316
+      value: -403.259
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

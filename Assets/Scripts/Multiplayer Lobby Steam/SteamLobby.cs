@@ -1,8 +1,9 @@
-﻿using UnityEngine;
-using Mirror;
+﻿using Mirror;
 using Steamworks;
-using UnityEngine.EventSystems;
 using System;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class SteamLobby : MonoBehaviour
 {
@@ -30,20 +31,24 @@ public class SteamLobby : MonoBehaviour
     // Ініціалізація сінглтона
     private void Awake()
     {
-        // Якщо інстанс ще не існує — робимо цим скриптом
+        Debug.Log($"🟢 [Awake] Завантажується SteamLobby. Сцена: {gameObject.scene.name}, ID: {gameObject.GetInstanceID()}");
+
         if (instance == null)
         {
             instance = this;
+            DontDestroyOnLoad(gameObject);
+            Debug.Log($"👑 [Awake] Цей об'єкт став ГОЛОВНИМ сінглтоном. ID: {gameObject.GetInstanceID()}");
         }
         else if (instance != this)
         {
-            // Якщо раптом з'явився дублікат — знищуємо його
+            Debug.LogError($"❌ [Awake] Знайдено ДУБЛІКАТ! Видаляємо дублікат з ID: {gameObject.GetInstanceID()}");
             Destroy(gameObject);
         }
     }
 
     private void Start()
     {
+
         // 1. Знаходимо NetworkManager (він зазвичай на цьому ж об'єкті)
         if (networkManager == null)
         {
@@ -95,7 +100,7 @@ public class SteamLobby : MonoBehaviour
             SteamMatchmaking.SetLobbyData(currentLobbyID, HostAddressKey, SteamUser.GetSteamID().ToString());
 
             // Кажемо меню переїхати камерою в лобі
-            if (menuManager != null) menuManager.GoToLobby();
+            if (menuManager != null) menuManager.UI_GoToLobby();
         }
     }
 
@@ -115,7 +120,7 @@ public class SteamLobby : MonoBehaviour
         networkManager.StartClient();
 
         // Якщо це клієнт (друг), він теж переходить в лобі візуально
-        if (menuManager != null) menuManager.GoToLobby();
+        if (menuManager != null) menuManager.UI_GoToLobby();
     }
 
     private void OnGameOverlayActivated(GameOverlayActivated_t pCallback)
@@ -156,5 +161,9 @@ public class SteamLobby : MonoBehaviour
             // Якщо ми просто Клієнт
             networkManager.StopClient();
         }
+
+        // 3. НОВЕ: Вручну повертаємося на сцену меню!
+        // Заміни "MenuScene" на точну назву твоєї сцени з меню.
+        SceneManager.LoadScene(MainLobbyScene);
     }
 }

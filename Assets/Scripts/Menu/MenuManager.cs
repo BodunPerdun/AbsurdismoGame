@@ -60,10 +60,16 @@ public class MenuManager : MonoBehaviour
 
     void Start()
     {
-        if (NetworkManager.singleton != null)
-        {
-            steamLobby = NetworkManager.singleton.GetComponent<SteamLobby>();
-        }
+        //if (NetworkManager.singleton != null)
+        //{
+        //    steamLobby = NetworkManager.singleton.GetComponent<SteamLobby>();
+        //}
+        //else
+        //{
+        //    Debug.LogError("MenuManager: Не вдалося знайти NetworkManager.singleton!");
+        //}
+
+        steamLobby = SteamLobby.instance;
 
         // 2. Віддаємо йому нові посилання
         if (steamLobby != null)
@@ -95,7 +101,17 @@ public class MenuManager : MonoBehaviour
 
         LoadCharacterPrefs();
         SwitchTab("Hat");
+
+        // Вмикаємо курсор та відкріплюємо його від центру екрана
+        ShowCursor(true);
     }
+
+    private static void ShowCursor(bool isSctive)
+    {
+        Cursor.visible = isSctive;
+        Cursor.lockState = isSctive ? CursorLockMode.None : CursorLockMode.Locked;
+    }
+
     private void OnDestroy()
     {
         // Зупиняємо всі запущені анімації та затримки DOTween!
@@ -155,13 +171,13 @@ public class MenuManager : MonoBehaviour
         else
         {
             // Якщо ми не в лобі (просто в налаштуваннях), повертаємося візуально
-            GoToStartMenu();
+            UI_GoToStartMenu();
         }
     }
 
     // --------------------------------------------------
 
-    public void GoToStartMenu()
+    public void UI_GoToStartMenu()
     {
         if (isGameStarted) return;
         isGameStarted = true;
@@ -181,7 +197,7 @@ public class MenuManager : MonoBehaviour
         }).SetLink(gameObject);;
     }
 
-    public void GoToLoadout()
+    public void UI_GoToLoadout()
     {
         menuButtons.DOFade(0, 0.3f).OnComplete(() => menuButtons.gameObject.SetActive(false));
         lobbyButtons.DOFade(0, 0.3f).OnComplete(() => lobbyButtons.gameObject.SetActive(false));
@@ -237,11 +253,12 @@ public class MenuManager : MonoBehaviour
         }
     }
 
-    public void GoToLobby()
+    public void UI_GoToLobby()
     {
+        //NetworkManager.singleton.ServerChangeScene("OnlineLobby"); // Встановлюємо сцену для офлайн режиму, щоб при виході з лобі ми поверталися сюди
         // 1. Ховаємо кнопки меню
         menuButtons.DOFade(0, 0.3f).OnComplete(() => menuButtons.gameObject.SetActive(false));
-        
+
         isLobby = true; // Встановлюємо прапорець, що ми в лобі, щоб логіка в Update() могла реагувати на це
 
         // 2. Їдемо камерою до лобі
@@ -249,7 +266,8 @@ public class MenuManager : MonoBehaviour
         SetCameras(0, 0, 0, 20);
 
         // 3. Показуємо кнопки лобі
-        DOVirtual.DelayedCall(1.5f, () => {
+        DOVirtual.DelayedCall(1.5f, () =>
+        {
             lobbyButtons.gameObject.SetActive(true);
             lobbyButtons.DOFade(1, 0.5f);
 
@@ -365,7 +383,7 @@ public class MenuManager : MonoBehaviour
     {
         // Старт гри при натисканні будь-якої клавіші, якщо ми ще не почали
         if (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame && !isGameStarted)
-        {GoToStartMenu();}
+        {UI_GoToStartMenu();}
 
         // Повернення назад з лоадаута до другого каму, якщо натиснути Esc
         if (isInLoadout && Input.GetKeyDown(KeyCode.Escape)) BackToSecondCam();

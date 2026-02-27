@@ -80,7 +80,7 @@ public class PlayerSceneHandler : NetworkBehaviour
 
         string currentScene = SceneManager.GetActiveScene().name;
 
-        if (currentScene == menuSceneName)
+        if (currentScene == menuSceneName || currentScene == "OnlineLobby")
         {
             SetupLobbyState();
         }
@@ -120,8 +120,16 @@ public class PlayerSceneHandler : NetworkBehaviour
                 CameraManager.Instance.RegisterCamera(playerCameraObject.GetComponent<CinemachineCamera>());
         }
 
-        // Для локального гравця ми хочемо сховати його тіло, але залишити тінь. Це робиться через налаштування рендерингу.
-        // Проходимося по всіх мешах тіла і кажемо їм відкидати тільки тінь
+        // Для локального гравця ми хочемо сховати його тіло, але залишити тінь. 
+        HideLocalPlayer();
+
+        ToggleVisuals(lobbyVisuals, false);
+        ToggleVisuals(gameVisuals, true);
+    }
+
+    private void HideLocalPlayer()
+    {
+        // Проходимося по всіх мешах тіла і кажемо їм відкидати тільки тінь. Це робиться через налаштування рендерингу
         foreach (GameObject rendObject in bodyRenderers)
         {
             Renderer[] renderers = rendObject.GetComponentsInChildren<Renderer>(true);
@@ -135,10 +143,6 @@ public class PlayerSceneHandler : NetworkBehaviour
                 }
             }
         }
-
-
-        ToggleVisuals(lobbyVisuals, false);
-        ToggleVisuals(gameVisuals, true);
     }
 
     private void SetScriptsEnabled(bool state)

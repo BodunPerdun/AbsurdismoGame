@@ -46994,6 +46994,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: NetworkManager KCP
       objectReference: {fileID: 0}
+    - target: {fileID: 130670792969024657, guid: 0518da1b58c23c34e9322bbc6c269b6f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2051958494768405271, guid: 0518da1b58c23c34e9322bbc6c269b6f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 29.87583

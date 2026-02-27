@@ -1,4 +1,5 @@
-﻿using Mirror;
+﻿using Edgegap;
+using Mirror;
 using UnityEngine;
 
 public class PauseMenu : MonoBehaviour
@@ -6,8 +7,6 @@ public class PauseMenu : MonoBehaviour
     [Header("UI Елементи")]
     public GameObject pauseMenuUI; // Перетягни сюди панель паузи (Canvas або Panel)
     public GameObject blockageOverlayMenuReference; // Посилання на оверлей, який блокує інтерфейс, коли відкрито меню
-
-    private SteamLobby steamLobby; // Посилання на твій SteamLobby для виклику методів виходу
 
     // Змінна для відстеження стану меню
     private bool isPaused = false;
@@ -44,7 +43,7 @@ public class PauseMenu : MonoBehaviour
 
     // --- ЛОГІКА МЕНЮ ---
 
-    public void PauseGame()
+    private void PauseGame()
     {
         pauseMenuUI.SetActive(true);
         isPaused = true;

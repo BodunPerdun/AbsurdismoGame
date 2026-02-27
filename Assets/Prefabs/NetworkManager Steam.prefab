@@ -65,7 +65,7 @@ MonoBehaviour:
   headlessStartMode: 0
   editorAutoStart: 0
   sendRate: 60
-  offlineScene: Assets/Scenes/LobbyScene.unity
+  offlineScene: 
   onlineScene: 
   offlineSceneLoadDelay: 0
   transport: {fileID: 4495266480002527385}
