@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1919723229375531406
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3431962363317095929}
+  - component: {fileID: 4019773281118603022}
+  m_Layer: 10
+  m_Name: CanyonGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3431962363317095929
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1919723229375531406}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 468.39587, y: -0, z: 323.49838}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4019773281118603022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1919723229375531406}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c39959439bbcf5b4baa79ad7deaa7acf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DungeonGenerator
+  startPrefab: {fileID: 4365926773580150322, guid: 214fc7f6b4a82174ea887bb0f3bdde7c, type: 3}
+  canyonPrefabs:
+  - {fileID: 5642392976979404572, guid: 47717dc4c8794124482fbc08586526e5, type: 3}
+  - {fileID: 5949891375833206214, guid: 1bd3e092e6b21d749a5e14604b2f03d5, type: 3}
+  - {fileID: 4365926773580150322, guid: 214fc7f6b4a82174ea887bb0f3bdde7c, type: 3}
+  roadPrefabs:
+  - {fileID: 1890688773016586014, guid: bc4861e2207c2df4b9ef8e5b882918d4, type: 3}
+  housePrefabs:
+  - {fileID: 4588234602470153955, guid: 8e2066881913cdc4d9a348729822ab44, type: 3}
+  - {fileID: 4657951271678077154, guid: 6d685de31ff14fa42afc882982c3cfbb, type: 3}
+  fillerPrefabs:
+  - {fileID: 6653894571634038949, guid: c4cc0c22773d00e4aa3e7876170e2a37, type: 3}
+  canyonLimit: 4
+  totalRoads: 6
+  roomLayerMask:
+    serializedVersion: 2
+    m_Bits: 1024
+  spawnFillersOnRoadSides: 0

@@ -9792,8 +9792,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 225, y: 31, z: 86}
-  m_Center: {x: -20, y: 16, z: 19.5}
+  m_Size: {x: 225, y: 31, z: 81}
+  m_Center: {x: -20, y: 16, z: 17}
 --- !u!114 &6033394606577648370
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9806,13 +9806,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1eac7fdd4c37ee9499430c27407055c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DungeonPart
-  roomCollider: {fileID: 5277035967884181180}
   entryPoints:
   - {fileID: 4177515714199741806}
   - {fileID: 5459462284223800113}
   - {fileID: 5718790940217404118}
   spawnWeight: 100
-  maxBranches: 2
+  maxBranches: 3
+  type: 0
+  roomCollider: {fileID: 5277035967884181180}
   currentBranches: 0
 --- !u!1 &5889832648761794897
 GameObject:
